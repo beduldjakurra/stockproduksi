@@ -1,1 +1,1578 @@
-hello
+<!DOCTYPE html>
+<html lang="id">
+<head><!-- PWA Manifest -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#3498db">
+
+<!-- iOS Support -->
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script>
+  // Registrasi Service Worker
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("sw.js")
+      .then(reg => console.log("Service Worker terdaftar:", reg))
+      .catch(err => console.error("SW gagal:", err));
+  }
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT Fuji Seat Indonesia - Laporan Produksi</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        /* Cover Screen Styles */
+        .cover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #87CEEB 0%, #1E90FF 50%, #0066CC 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: transform 0.8s ease-in-out;
+        }
+        
+        .cover-screen.hidden {
+            transform: translateX(-100%);
+        }
+        
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .logo {
+            font-size: 42px;
+            font-weight: bold;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 2px;
+        }
+        
+        .logo-subtitle {
+            font-size: 20px;
+            color: white;
+            margin-top: 10px;
+            text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .enter-button {
+            padding: 16px 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0066CC;
+            background-color: white;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+        
+        .enter-button:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+        
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        /* Main App Styles (tersembunyi di awal) */
+        .main-app {
+            display: none;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            padding: 20px;
+            line-height: 1.6;
+            transition: background-color 0.3s, color 0.3s;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            padding: 25px;
+            position: relative;
+            transition: all 0.4s ease;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: border-color 0.3s;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: color 0.3s;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .date {
+            color: #7f8c8d;
+            font-size: 18px;
+            margin-bottom: 20px;
+            transition: color 0.3s;
+            font-weight: 500;
+        }
+        
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: rgba(52, 152, 219, 0.1);
+            padding: 12px 20px;
+            border-radius: 30px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #3498db;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #2c3e50;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        .action-button {
+            color: white;
+            border: none;
+            padding: 14px 25px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .action-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .action-button.save {
+            background: linear-gradient(to right, #27ae60, #219653);
+        }
+        
+        .action-button.save:hover {
+            background: linear-gradient(to right, #219653, #1e8449);
+        }
+        
+        .action-button.share {
+            background: linear-gradient(to right, #25D366, #128C7E);
+        }
+        
+        .action-button.share:hover {
+            background: linear-gradient(to right, #128C7E, #075E54);
+        }
+        
+        .action-button.jpg-share {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .action-button.jpg-share:hover {
+            background: linear-gradient(to right, #c0392b, #a93226);
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin: 0 auto;
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            margin-bottom: 30px;
+            transition: all 0.4s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transform-style: preserve-3d;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 800px;
+        }
+        
+        th {
+            background: linear-gradient(to bottom, #3498db, #2980b9);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            transition: background-color 0.3s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        td {
+            padding: 12px 15px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            transition: all 0.3s;
+        }
+        
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+            transition: background-color 0.3s;
+        }
+        
+        tr:hover {
+            background-color: #f1f8ff;
+            transition: background-color 0.3s;
+        }
+        
+        .kode-inject {
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            transition: color 0.3s;
+        }
+        
+        /* Mengatur semua kolom memiliki lebar yang sama */
+        th, td {
+            width: 12.5%; /* 100% / 8 kolom = 12.5% */
+        }
+        
+        /* Khusus untuk kolom kode inject, biarkan konten menentukan lebar */
+        th:first-child, td:first-child {
+            width: auto;
+            text-align: left;
+        }
+        
+        /* Untuk tabel kedua - semua kolom sama lebar */
+        .table-2 th, 
+        .table-2 td {
+            width: 25%; /* 100% / 4 kolom = 25% */
+        }
+        
+        /* Tombol navigasi */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+        }
+        
+        .nav-button {
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+        }
+        
+        .nav-button:active {
+            transform: translateY(0);
+        }
+        
+        .next-button {
+            background: linear-gradient(to right, #3498db, #2980b9);
+        }
+        
+        .next-button:hover {
+            background: linear-gradient(to right, #2980b9, #2573a7);
+        }
+        
+        .prev-button {
+            background: linear-gradient(to right, #7f8c8d, #636e70);
+        }
+        
+        .prev-button:hover {
+            background: linear-gradient(to right, #636e70, #57606b);
+        }
+        
+        .calculate-button {
+            background: linear-gradient(to right, #27ae60, #219653);
+        }
+        
+        .calculate-button:hover {
+            background: linear-gradient(to right, #219653, #1e8449);
+        }
+        
+        .back-button {
+            background: linear-gradient(to right, #e74c3c, #c0392b);
+        }
+        
+        .back-button:hover {
+            background: linear-gradient(to right, #c0392b, #a93226);
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 35px;
+            color: #7f8c8d;
+            font-size: 15px;
+            transition: color 0.3s;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        /* Input styling */
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 14px;
+            transition: all 0.3s;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.2);
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .result-cell {
+            font-weight: bold;
+            font-size: 15px;
+        }
+        
+        .positive {
+            color: #27ae60;
+        }
+        
+        .negative {
+            color: #e74c3c;
+        }
+        
+        .zero {
+            color: #7f8c8d;
+        }
+        
+        /* Page flip animation */
+        .page-flip {
+            animation: pageFlip 0.6s ease;
+        }
+        
+        @keyframes pageFlip {
+            0% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+            50% {
+                transform: rotateY(90deg);
+                opacity: 0.5;
+            }
+            100% {
+                transform: rotateY(0deg);
+                opacity: 1;
+            }
+        }
+        
+        /* Fade effect */
+        .fade-effect {
+            animation: fadeEffect 0.6s ease;
+        }
+        
+        @keyframes fadeEffect {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.3;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        
+        /* Door slide effect */
+        .door-slide {
+            animation: doorSlide 0.8s ease;
+        }
+        
+        @keyframes doorSlide {
+            0% {
+                transform: translateX(0%);
+            }
+            50% {
+                transform: translateX(100%);
+                opacity: 0.5;
+            }
+            51% {
+                transform: translateX(-100%);
+                opacity: 0.5;
+            }
+            100% {
+                transform: translateX(0%);
+                opacity: 1;
+            }
+        }
+        
+        /* Night mode styles */
+        body.night-mode {
+            background: linear-gradient(135deg, #1a2431 0%, #0d1117 100%);
+            color: #ecf0f1;
+        }
+        
+        body.night-mode .container {
+            background-color: #2c3e50;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        
+        body.night-mode header {
+            border-bottom-color: #4a6572;
+        }
+        
+        body.night-mode h1 {
+            color: #ecf0f1;
+        }
+        
+        body.night-mode .date {
+            color: #bdc3c7;
+        }
+        
+        body.night-mode .table-container {
+            border-color: #4a6572;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        body.night-mode th {
+            background: linear-gradient(to bottom, #2980b9, #1c5d8a);
+        }
+        
+        body.night-mode td {
+            border-bottom-color: #4a6572;
+        }
+        
+        body.night-mode tr:nth-child(even) {
+            background-color: #34495e;
+        }
+        
+        body.night-mode tr:hover {
+            background-color: #3c5066;
+        }
+        
+        body.night-mode .kode-inject {
+            color: #ecf0f1;
+        }
+        
+        body.night-mode input[type="number"] {
+            background-color: #4a6572;
+            border-color: #5d6d7e;
+            color: #ecf0f1;
+            box-shadow: inset 0 1px 3px rgba(0,0,0,0.3);
+        }
+        
+        body.night-mode input[type="number"]:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+        
+        body.night-mode footer {
+            color: #bdc3c7;
+            border-top-color: #4a6572;
+        }
+        
+        /* Sheet indicator */
+        .sheet-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+        
+        .sheet-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ddd;
+            transition: all 0.3s;
+        }
+        
+        .sheet-dot.active {
+            background-color: #3498db;
+            transform: scale(1.3);
+        }
+        
+        body.night-mode .sheet-dot {
+            background-color: #4a6572;
+        }
+        
+        body.night-mode .sheet-dot.active {
+            background-color: #2980b9;
+        }
+        
+        /* Loading indicator */
+        .loading-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #27ae60;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        /* Status indicator */
+        .status-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #3498db;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-size: 14px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2ecc71;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+        }
+        
+        .toast.error {
+            background: #e74c3c;
+        }
+        
+        @media (max-width: 768px) {
+            th, td {
+                padding: 10px 12px;
+                font-size: 14px;
+            }
+            .nav-buttons {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .nav-button {
+                width: 100%;
+                justify-content: center;
+            }
+            .action-buttons {
+                flex-direction: column;
+            }
+            .action-button {
+                width: 100%;
+                justify-content: center;
+            }
+            h1 {
+                font-size: 26px;
+            }
+            .logo {
+                font-size: 32px;
+            }
+            .logo-subtitle {
+                font-size: 16px;
+            }
+            .enter-button {
+                padding: 14px 30px;
+                font-size: 16px;
+            }
+            .container {
+                padding: 15px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Screen -->
+    <div class="cover-screen" id="coverScreen">
+        <div class="logo-container">
+            <div class="logo">PT FUJI SEAT INDONESIA</div>
+            <div class="logo-subtitle">Laporan Produksi Harian</div>
+        </div>
+        <button class="enter-button" id="enterButton">MASUK</button>
+    </div>
+
+    <!-- Main App (Awalnya Tersembunyi) -->
+    <div class="main-app" id="mainApp">
+        <div class="container">
+            <header>
+                <h1 id="pageTitle">STOCK PRODUKSI DAY</h1>
+                <div class="date" id="currentDate">Senin, 12 April 2023</div>
+                
+                <div class="mode-toggle">
+                    <span>Day</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modeToggle">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Night</span>
+                </div>
+                
+                <div class="sheet-indicator">
+                    <div class="sheet-dot active" id="daySheet"></div>
+                    <div class="sheet-dot" id="nightSheet"></div>
+                </div>
+                
+                <div class="action-buttons">
+                    <button class="action-button save" onclick="saveToExcel()">
+                        <i>💾</i> Save to Excel
+                    </button>
+                    <button class="action-button share" onclick="shareToWhatsApp()">
+                        <i>📱</i> Share to WhatsApp
+                    </button>
+                    <button class="action-button jpg-share" onclick="shareAsJpg()">
+                        <i>🖼️</i> Convert JPG to WhatsApp
+                    </button>
+                </div>
+            </header>
+
+            <!-- Tabel Utama -->
+            <div class="table-container" id="mainTableContainer">
+                <table id="mainTable">
+                    <thead>
+                        <tr>
+                            <th>KODE INJECT</th>
+                            <th>STOCK AWAL</th>
+                            <th>PRODUKSI</th>
+                            <th>SURCIP</th>
+                            <th>SUNTER</th>
+                            <th>KIIC</th>
+                            <th>ACT QTY</th>
+                            <th>GAP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Baris akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tabel Kedua (Awalnya Tersembunyi) -->
+            <div class="table-container hidden" id="secondTableContainer">
+                <table id="secondTable" class="table-2">
+                    <thead>
+                        <tr>
+                            <th>KODE INJECT</th>
+                            <th>STDRT PACK</th>
+                            <th>ACT /BOX</th>
+                            <th>ACT QTY</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Baris akan diisi oleh JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Tombol Navigasi -->
+            <div class="nav-buttons">
+                <button id="prevButton" class="nav-button prev-button hidden">
+                    <span style="font-size: 18px;">←</span> Kembali
+                </button>
+                <button id="nextButton" class="nav-button next-button">
+                    Selanjutnya <span style="font-size: 18px;">→</span>
+                </button>
+            </div>
+
+            <footer>
+                <p>Laporan Produksi Harian - PT Fuji Seat Indonesia © 2023</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div class="loading-indicator" id="loadingIndicator">
+        Menyimpan...
+    </div>
+
+    <!-- Status Indicator -->
+    <div class="status-indicator" id="statusIndicator">
+        Data tersimpan otomatis
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+        Operasi berhasil
+    </div>
+
+    <script>
+        // Data untuk kedua tabel
+        const kodeInject = [
+            "J-303 RH", "J-305", "J-306 RH", "J-306 LH", "J-307", 
+            "J-308 RH", "J-308 LH", "J-309", "J-1401 RH", "J-1402 LH", 
+            "J-1403 RH", "J-1403 LH", "J-1404 RH", "J-1404 LH", "J-1405 RH", 
+            "J-1405 LH", "J-1406 RH", "J-1406 LH", "J-1407 RH", "J-1407 LH", 
+            "J-1408 RH", "J-1408 LH", "J-1409 RH", "J-1409 LH", "J-1410 RH", 
+            "J-1411 LH", "J-1412 RH", "J-1413 LH", "J-5501", "J-5502", 
+            "J-5503", "J-5504", "J-5505", "J-5506", "J-5508 RH", 
+            "J-5508 LH", "J-5509 RH", "J-5509 LH", "136B", "202B"
+        ];
+
+        const stdrtPack = [
+            104, 200, 32, 32, 52, 15, 15, 48, 72, 72, 
+            40, 40, 60, 60, 9, 9, 10, 10, 144, 144, 
+            120, 120, 40, 40, 18, 18, 24, 24, 11, 11, 
+            12, 12, 192, 180, 200, 200, 24, 24, 25, 25
+        ];
+
+        // Elemen UI
+        const coverScreen = document.getElementById('coverScreen');
+        const enterButton = document.getElementById('enterButton');
+        const mainApp = document.getElementById('mainApp');
+        const mainTableContainer = document.getElementById('mainTableContainer');
+        const secondTableContainer = document.getElementById('secondTableContainer');
+        const mainTableBody = document.querySelector('#mainTable tbody');
+        const secondTableBody = document.querySelector('#secondTable tbody');
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const modeToggle = document.getElementById('modeToggle');
+        const pageTitle = document.getElementById('pageTitle');
+        const currentDate = document.getElementById('currentDate');
+        const daySheet = document.getElementById('daySheet');
+        const nightSheet = document.getElementById('nightSheet');
+        const container = document.querySelector('.container');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const statusIndicator = document.getElementById('statusIndicator');
+        const toast = document.getElementById('toast');
+        
+        // Status aplikasi
+        let currentView = 'main';
+        let isNightMode = false;
+        let currentSheet = 1;
+        const sheetsData = {
+            1: {}, // Sheet Day
+            2: {}  // Sheet Night
+        };
+        
+        // Data untuk menyimpan nilai
+        const actQtyValues = {};
+        const gapValues = {};
+        const inputValues = {
+            stockAwal: {},
+            produksi: {},
+            surcip: {},
+            sunter: {},
+            kiic: {},
+            actBox: {}
+        };
+        
+        // Interval ID untuk auto-save
+        let autoSaveInterval;
+        let saveTimeout;
+        
+        // Inisialisasi
+        initializeTables();
+        setupEventListeners();
+        updateDate();
+        loadDataFromLocalStorage();
+        setupAutoSave();
+        setupInputNavigation();
+        
+        // Fungsi untuk menginisialisasi kedua tabel
+        function initializeTables() {
+            // Kosongkan tubuh tabel
+            mainTableBody.innerHTML = '';
+            secondTableBody.innerHTML = '';
+            
+            // Isi tabel utama
+            kodeInject.forEach((kode, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="kode-inject">${kode}</td>
+                    <td><input type="number" class="stock-awal-input" data-index="${index}" value="${inputValues.stockAwal[index] || ''}" min="0"></td>
+                    <td><input type="number" class="produksi-input" data-index="${index}" value="${inputValues.produksi[index] || ''}" min="0"></td>
+                    <td><input type="number" class="surcip-input" data-index="${index}" value="${inputValues.surcip[index] || ''}" min="0"></td>
+                    <td><input type="number" class="sunter-input" data-index="${index}" value="${inputValues.sunter[index] || ''}" min="0"></td>
+                    <td><input type="number" class="kiic-input" data-index="${index}" value="${inputValues.kiic[index] || ''}" min="0"></td>
+                    <td class="act-qty-cell result-cell" id="act-qty-${index}">${actQtyValues[index] || '-'}</td>
+                    <td class="gap-cell result-cell" id="gap-${index}">${gapValues[index] || '-'}</td>
+                `;
+                
+                mainTableBody.appendChild(row);
+            });
+            
+            // Isi tabel kedua
+            kodeInject.forEach((kode, index) => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td class="kode-inject">${kode}</td>
+                    <td>${stdrtPack[index]}</td>
+                    <td><input type="number" class="act-box-input" data-index="${index}" value="${inputValues.actBox[index] || ''}" min="0"></td>
+                    <td class="act-qty-cell-2 result-cell" id="act-qty-2-${index}">${actQtyValues[index] || '-'}</td>
+                `;
+                
+                secondTableBody.appendChild(row);
+            });
+            
+            // Tambahkan event listeners untuk input di tabel utama
+            document.querySelectorAll('.stock-awal-input, .produksi-input, .surcip-input, .sunter-input, .kiic-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = this.getAttribute('data-index');
+                    const value = this.value;
+                    
+                    // Simpan nilai input
+                    if (this.classList.contains('stock-awal-input')) {
+                        inputValues.stockAwal[index] = value;
+                    } else if (this.classList.contains('produksi-input')) {
+                        inputValues.produksi[index] = value;
+                    } else if (this.classList.contains('surcip-input')) {
+                        inputValues.surcip[index] = value;
+                    } else if (this.classList.contains('sunter-input')) {
+                        inputValues.sunter[index] = value;
+                    } else if (this.classList.contains('kiic-input')) {
+                        inputValues.kiic[index] = value;
+                    }
+                    
+                    calculateGap(index);
+                    debounceSave();
+                });
+            });
+            
+            // Tambahkan event listeners untuk input di tabel kedua
+            document.querySelectorAll('.act-box-input').forEach(input => {
+                input.addEventListener('input', function() {
+                    const index = this.getAttribute('data-index');
+                    const value = this.value;
+                    inputValues.actBox[index] = value;
+                    
+                    calculateActQty(index);
+                    debounceSave();
+                });
+            });
+            
+            // Terapkan validasi input
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                validateNumberInput(input);
+            });
+            
+            // Perbarui tampilan hasil
+            updateResultsDisplay();
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Event listener untuk tombol masuk
+            enterButton.addEventListener('click', function() {
+                coverScreen.classList.add('hidden');
+                setTimeout(function() {
+                    mainApp.style.display = 'block';
+                }, 800);
+            });
+            
+            // Event listeners untuk tombol
+            nextButton.addEventListener('click', handleNextButtonClick);
+            prevButton.addEventListener('click', showMainTable);
+            
+            // Event listener untuk toggle mode
+            modeToggle.addEventListener('change', function() {
+                // Efek meredup saat beralih mode
+                container.classList.add('fade-effect');
+                
+                setTimeout(() => {
+                    isNightMode = this.checked;
+                    document.body.classList.toggle('night-mode', isNightMode);
+                    pageTitle.textContent = isNightMode ? 'STOCK PRODUKSI NIGHT' : 'STOCK PRODUKSI DAY';
+                    
+                    // Simpan data sheet saat ini sebelum beralih
+                    saveCurrentSheetData();
+                    
+                    // Beralih antara sheet day dan night
+                    if (isNightMode) {
+                        currentSheet = 2;
+                        daySheet.classList.remove('active');
+                        nightSheet.classList.add('active');
+                    } else {
+                        currentSheet = 1;
+                        nightSheet.classList.remove('active');
+                        daySheet.classList.add('active');
+                    }
+                    
+                    // Muat data sheet
+                    loadSheetData();
+                    
+                    // Hapus efek fade
+                    container.classList.remove('fade-effect');
+                }, 300);
+            });
+        }
+        
+        // Validasi input angka
+        function validateNumberInput(input) {
+            input.addEventListener('input', function() {
+                // Hanya angka positif yang diizinkan
+                this.value = this.value.replace(/[^0-9]/g, '');
+                
+                // Jika kosong, set ke string kosong bukan 0
+                if (this.value === '') return;
+                
+                // Konversi ke number dan pastikan positif
+                const numValue = parseInt(this.value);
+                if (numValue < 0) this.value = '';
+            });
+        }
+        
+        // Setup navigasi input dengan tombol Enter
+        function setupInputNavigation() {
+            document.querySelectorAll('input').forEach((input, index, inputs) => {
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextIndex = index + 1;
+                        if (nextIndex < inputs.length) {
+                            inputs[nextIndex].focus();
+                        } else {
+                            // Jika di input terakhir, fokus ke input pertama
+                            inputs[0].focus();
+                        }
+                    }
+                });
+            });
+        }
+        
+        // Setup auto-save dengan debouncing
+        function setupAutoSave() {
+            // Hapus interval sebelumnya jika ada
+            if (autoSaveInterval) {
+                clearInterval(autoSaveInterval);
+            }
+            
+            // Set interval untuk auto-save setiap 30 detik
+            autoSaveInterval = setInterval(() => {
+                saveDataToLocalStorage();
+                showStatusIndicator('Data tersimpan otomatis', 2000);
+            }, 30000);
+        }
+        
+        // Debouncing untuk save
+        function debounceSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                saveDataToLocalStorage();
+                showStatusIndicator('Data tersimpan', 1500);
+            }, 2000);
+        }
+        
+        // Tampilkan status indicator
+        function showStatusIndicator(message, duration = 2000) {
+            statusIndicator.textContent = message;
+            statusIndicator.style.display = 'block';
+            
+            setTimeout(() => {
+                statusIndicator.style.display = 'none';
+            }, duration);
+        }
+        
+        // Tampilkan toast notification
+        function showToast(message, isError = false) {
+            toast.textContent = message;
+            toast.className = isError ? 'toast error' : 'toast';
+            toast.style.display = 'block';
+            
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        
+        // Tampilkan loading indicator
+        function showLoadingIndicator() {
+            loadingIndicator.style.display = 'block';
+        }
+        
+        // Sembunyikan loading indicator
+        function hideLoadingIndicator() {
+            loadingIndicator.style.display = 'none';
+        }
+        
+        // Simpan data sheet saat ini
+        function saveCurrentSheetData() {
+            sheetsData[currentSheet] = {
+                inputValues: {...inputValues},
+                actQtyValues: {...actQtyValues},
+                gapValues: {...gapValues}
+            };
+        }
+        
+        // Muat data sheet
+        function loadSheetData() {
+            if (sheetsData[currentSheet]) {
+                const sheet = sheetsData[currentSheet];
+                
+                // Salin data dari sheet
+                Object.assign(inputValues, sheet.inputValues);
+                Object.assign(actQtyValues, sheet.actQtyValues);
+                Object.assign(gapValues, sheet.gapValues);
+                
+                // Perbarui tampilan
+                initializeTables();
+            } else {
+                // Reset data jika sheet tidak ada
+                resetData();
+            }
+        }
+        
+        // Reset data
+        function resetData() {
+            // Reset input values
+            for (let key in inputValues) {
+                inputValues[key] = {};
+            }
+            
+            // Reset calculated values
+            for (let key in actQtyValues) {
+                delete actQtyValues[key];
+            }
+            
+            for (let key in gapValues) {
+                delete gapValues[key];
+            }
+            
+            // Perbarui tampilan
+            initializeTables();
+        }
+        
+        // Simpan data ke localStorage
+        function saveDataToLocalStorage() {
+            try {
+                saveCurrentSheetData();
+                
+                const dataToSave = {
+                    sheetsData,
+                    lastSaved: new Date().toISOString()
+                };
+                
+                localStorage.setItem('productionData', JSON.stringify(dataToSave));
+                return true;
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                showToast('Gagal menyimpan data', true);
+                return false;
+            }
+        }
+        
+        // Muat data dari localStorage
+        function loadDataFromLocalStorage() {
+            try {
+                const savedData = localStorage.getItem('productionData');
+                if (savedData) {
+                    const parsedData = JSON.parse(savedData);
+                    
+                    // Muat data sheets
+                    if (parsedData.sheetsData) {
+                        Object.assign(sheetsData, parsedData.sheetsData);
+                    }
+                    
+                    // Muat data sheet aktif
+                    loadSheetData();
+                    
+                    showToast('Data sebelumnya dimuat', false);
+                }
+            } catch (error) {
+                console.error('Error loading from localStorage:', error);
+                showToast('Gagal memuat data sebelumnya', true);
+            }
+        }
+        
+        // Perbarui tanggal
+        function updateDate() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            currentDate.textContent = now.toLocaleDateString('id-ID', options);
+        }
+        
+        // Fungsi untuk menangani klik tombol Next
+        function handleNextButtonClick() {
+            if (currentView === 'main') {
+                showSecondTable();
+            } else if (currentView === 'second') {
+                if (validateCompleteData()) {
+                    calculateAllActQty();
+                    showMainTable();
+                }
+            }
+        }
+        
+        // Tampilkan tabel kedua
+        function showSecondTable() {
+            // Efek geser pintu
+            container.classList.add('door-slide');
+            
+            setTimeout(() => {
+                mainTableContainer.classList.add('hidden');
+                secondTableContainer.classList.remove('hidden');
+                prevButton.classList.remove('hidden');
+                
+                nextButton.textContent = 'Hitung & Kembali';
+                nextButton.className = 'nav-button calculate-button';
+                
+                currentView = 'second';
+                
+                // Hapus efek geser
+                container.classList.remove('door-slide');
+            }, 400);
+        }
+        
+        // Tampilkan tabel utama
+        function showMainTable() {
+            // Efek geser pintu
+            container.classList.add('door-slide');
+            
+            setTimeout(() => {
+                secondTableContainer.classList.add('hidden');
+                mainTableContainer.classList.remove('hidden');
+                prevButton.classList.add('hidden');
+                
+                nextButton.textContent = 'Selanjutnya';
+                nextButton.className = 'nav-button next-button';
+                
+                // Perbarui nilai ACT QTY di tabel utama
+                updateMainTableActQty();
+                
+                currentView = 'main';
+                
+                // Hapus efek geser
+                container.classList.remove('door-slide');
+            }, 400);
+        }
+        
+        // Hitung ACT QTY untuk satu baris di tabel kedua
+        function calculateActQty(index) {
+            try {
+                const actBoxInput = document.querySelector(`.act-box-input[data-index="${index}"]`);
+                const actQtyCell = document.getElementById(`act-qty-2-${index}`);
+                
+                if (actBoxInput.value) {
+                    const actBox = parseInt(actBoxInput.value) || 0;
+                    const calculatedActQty = stdrtPack[index] * actBox;
+                    actQtyCell.textContent = calculatedActQty;
+                    actQtyCell.classList.add('positive');
+                    
+                    // Simpan nilai untuk digunakan di tabel utama
+                    actQtyValues[index] = calculatedActQty;
+                } else {
+                    actQtyCell.textContent = '-';
+                    actQtyCell.classList.remove('positive');
+                    delete actQtyValues[index];
+                }
+                
+                // Hitung ulang GAP setelah ACT QTY berubah
+                calculateGap(index);
+            } catch (error) {
+                console.error('Error calculating ACT QTY:', error);
+            }
+        }
+        
+        // Hitung semua ACT QTY di tabel kedua
+        function calculateAllActQty() {
+            kodeInject.forEach((_, index) => {
+                calculateActQty(index);
+            });
+        }
+        
+        // Perbarui nilai ACT QTY di tabel utama
+        function updateMainTableActQty() {
+            kodeInject.forEach((_, index) => {
+                const actQtyCell = document.getElementById(`act-qty-${index}`);
+                
+                if (actQtyValues[index] !== undefined) {
+                    actQtyCell.textContent = actQtyValues[index];
+                    actQtyCell.classList.add('positive');
+                } else {
+                    actQtyCell.textContent = '-';
+                    actQtyCell.classList.remove('positive');
+                }
+            });
+            
+            // Hitung ulang GAP setelah memperbarui ACT QTY
+            calculateAllGaps();
+        }
+        
+        // Perbarui tampilan hasil
+        function updateResultsDisplay() {
+            kodeInject.forEach((_, index) => {
+                // Perbarui ACT QTY
+                const actQtyCell = document.getElementById(`act-qty-${index}`);
+                if (actQtyValues[index] !== undefined) {
+                    actQtyCell.textContent = actQtyValues[index];
+                    actQtyCell.classList.add('positive');
+                }
+                
+                // Perbarui GAP
+                const gapCell = document.getElementById(`gap-${index}`);
+                if (gapValues[index] !== undefined) {
+                    gapCell.textContent = gapValues[index];
+                    
+                    // Warna berdasarkan nilai GAP
+                    gapCell.classList.remove('positive', 'negative', 'zero');
+                    if (gapValues[index] > 0) {
+                        gapCell.classList.add('positive');
+                    } else if (gapValues[index] < 0) {
+                        gapCell.classList.add('negative');
+                    } else {
+                        gapCell.classList.add('zero');
+                    }
+                }
+            });
+        }
+        
+        // Hitung GAP untuk satu baris (rumus yang diperbaiki)
+        function calculateGap(index) {
+            try {
+                const stockAwal = parseInt(inputValues.stockAwal[index] || 0);
+                const produksi = parseInt(inputValues.produksi[index] || 0);
+                const surcip = parseInt(inputValues.surcip[index] || 0);
+                const sunter = parseInt(inputValues.sunter[index] || 0);
+                const kiic = parseInt(inputValues.kiic[index] || 0);
+                const actQty = actQtyValues[index] || 0;
+                
+                // Rumus yang diperbaiki: GAP = ACT QTY - (STOCK AWAL + PRODUKSI - SURCIP - SUNTER - KIIC)
+                const gap = actQty - (stockAwal + produksi - surcip - sunter - kiic);
+                const gapCell = document.getElementById(`gap-${index}`);
+                
+                gapCell.textContent = gap;
+                gapValues[index] = gap;
+                
+                // Warna berdasarkan nilai GAP
+                gapCell.classList.remove('positive', 'negative', 'zero');
+                if (gap > 0) {
+                    gapCell.classList.add('positive');
+                } else if (gap < 0) {
+                    gapCell.classList.add('negative');
+                } else {
+                    gapCell.classList.add('zero');
+                }
+            } catch (error) {
+                console.error('Error calculating GAP:', error);
+            }
+        }
+        
+        // Hitung semua GAP
+        function calculateAllGaps() {
+            kodeInject.forEach((_, index) => {
+                calculateGap(index);
+            });
+        }
+        
+        // Validasi data lengkap
+        function validateCompleteData() {
+            const incompleteRows = [];
+            
+            kodeInject.forEach((_, index) => {
+                if (!inputValues.stockAwal[index] || !inputValues.produksi[index]) {
+                    incompleteRows.push(index + 1);
+                }
+            });
+            
+            if (incompleteRows.length > 0) {
+                showToast(`Data tidak lengkap pada baris: ${incompleteRows.join(', ')}`, true);
+                return false;
+            }
+            
+            return true;
+        }
+        
+        // Simpan ke Excel
+        function saveToExcel() {
+            try {
+                showLoadingIndicator();
+                
+                // Prepare data for Excel
+                const dayData = [];
+                const nightData = [];
+                
+                // Add headers
+                dayData.push(['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']);
+                nightData.push(['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']);
+                
+                // Add data rows
+                kodeInject.forEach((kode, index) => {
+                    const stockAwal = inputValues.stockAwal[index] || '';
+                    const produksi = inputValues.produksi[index] || '';
+                    const surcip = inputValues.surcip[index] || '';
+                    const sunter = inputValues.sunter[index] || '';
+                    const kiic = inputValues.kiic[index] || '';
+                    const actQty = actQtyValues[index] || '';
+                    const gap = gapValues[index] || '';
+                    
+                    dayData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
+                    nightData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
+                });
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Add sheets
+                const dayWs = XLSX.utils.aoa_to_sheet(dayData);
+                const nightWs = XLSX.utils.aoa_to_sheet(nightData);
+                
+                XLSX.utils.book_append_sheet(wb, dayWs, 'Production Day');
+                XLSX.utils.book_append_sheet(wb, nightWs, 'Production Night');
+                
+                // Generate Excel file
+                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                hideLoadingIndicator();
+                showToast(`File ${fileName} berhasil disimpan!`);
+            } catch (error) {
+                console.error('Error saving to Excel:', error);
+                hideLoadingIndicator();
+                showToast('Gagal menyimpan ke Excel', true);
+            }
+        }
+        
+        // Bagikan ke WhatsApp dengan konversi ke Excel
+        function shareToWhatsApp() {
+            try {
+                showLoadingIndicator();
+                
+                // Pertama, simpan ke Excel
+                // Prepare data for Excel
+                const dayData = [];
+                const nightData = [];
+                
+                // Add headers
+                dayData.push(['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']);
+                nightData.push(['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']);
+                
+                // Add data rows
+                kodeInject.forEach((kode, index) => {
+                    const stockAwal = inputValues.stockAwal[index] || '';
+                    const produksi = inputValues.produksi[index] || '';
+                    const surcip = inputValues.surcip[index] || '';
+                    const sunter = inputValues.sunter[index] || '';
+                    const kiic = inputValues.kiic[index] || '';
+                    const actQty = actQtyValues[index] || '';
+                    const gap = gapValues[index] || '';
+                    
+                    dayData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
+                    nightData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
+                });
+                
+                // Create workbook
+                const wb = XLSX.utils.book_new();
+                
+                // Add sheets
+                const dayWs = XLSX.utils.aoa_to_sheet(dayData);
+                const nightWs = XLSX.utils.aoa_to_sheet(nightData);
+                
+                XLSX.utils.book_append_sheet(wb, dayWs, 'Production Day');
+                XLSX.utils.book_append_sheet(wb, nightWs, 'Production Night');
+                
+                // Generate Excel file
+                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                
+                // Kemudian siapkan pesan untuk WhatsApp
+                // Prepare data for sharing
+                let shareText = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A`;
+                shareText += `Tanggal: ${currentDate.textContent}%0A`;
+                shareText += `File Excel: ${fileName}%0A%0A`;
+                
+                // Add summary data
+                shareText += "*RINGKASAN:*%0A";
+                
+                const totalActQty = Object.values(actQtyValues).reduce((sum, val) => sum + (val || 0), 0);
+                const totalGap = Object.values(gapValues).reduce((sum, val) => sum + (val || 0), 0);
+                
+                shareText += `Total ACT QTY: ${totalActQty}%0A`;
+                shareText += `Total GAP: ${totalGap}%0A%0A`;
+                
+                const positiveGaps = Object.values(gapValues).filter(gap => gap > 0).length;
+                const negativeGaps = Object.values(gapValues).filter(gap => gap < 0).length;
+                const zeroGaps = Object.values(gapValues).filter(gap => gap === 0).length;
+                
+                shareText += `GAP Positif: ${positiveGaps}%0A`;
+                shareText += `GAP Negatif: ${negativeGaps}%0A`;
+                shareText += `GAP Nol: ${zeroGaps}%0A%0A`;
+                
+                shareText += "_Laporan dibuat secara otomatis dan file Excel telah disimpan_";
+                
+                // Create WhatsApp share URL
+                const whatsappUrl = `https://wa.me/?text=${shareText}`;
+                
+                // Open WhatsApp share
+                window.open(whatsappUrl, '_blank');
+                
+                hideLoadingIndicator();
+            } catch (error) {
+                console.error('Error sharing to WhatsApp:', error);
+                hideLoadingIndicator();
+                showToast('Gagal berbagi ke WhatsApp', true);
+            }
+        }
+        
+        // Konversi ke JPG dan bagikan ke WhatsApp
+        function shareAsJpg() {
+            try {
+                showLoadingIndicator();
+                
+                // Sembunyikan elemen yang tidak perlu dalam screenshot
+                const actionButtons = document.querySelector('.action-buttons');
+                const navButtons = document.querySelector('.nav-buttons');
+                const footer = document.querySelector('footer');
+                
+                actionButtons.style.display = 'none';
+                navButtons.style.display = 'none';
+                footer.style.display = 'none';
+                
+                // Ambil screenshot dari container
+                html2canvas(document.querySelector('.container')).then(canvas => {
+                    // Kembalikan tampilan elemen yang disembunyikan
+                    actionButtons.style.display = 'flex';
+                    navButtons.style.display = 'flex';
+                    footer.style.display = 'block';
+                    
+                    // Konversi canvas ke data URL
+                    const imgData = canvas.toDataURL('image/jpeg');
+                    
+                    // Buat link unduhan
+                    const link = document.createElement('a');
+                    link.download = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+                    link.href = imgData;
+                    link.click();
+                    
+                    // Siapkan pesan untuk WhatsApp
+                    let shareText = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A`;
+                    shareText += `Tanggal: ${currentDate.textContent}%0A%0A`;
+                    shareText += "_Laporan dalam format JPG telah dihasilkan_";
+                    
+                    // Create WhatsApp share URL
+                    const whatsappUrl = `https://wa.me/?text=${shareText}`;
+                    
+                    // Open WhatsApp share
+                    window.open(whatsappUrl, '_blank');
+                    
+                    hideLoadingIndicator();
+                    showToast('Gambar JPG berhasil dihasilkan dan dibagikan');
+                });
+            } catch (error) {
+                console.error('Error converting to JPG:', error);
+                hideLoadingIndicator();
+                showToast('Gagal membuat gambar JPG', true);
+                
+                // Pastikan elemen ditampilkan kembali jika terjadi error
+                const actionButtons = document.querySelector('.action-buttons');
+                const navButtons = document.querySelector('.nav-buttons');
+                const footer = document.querySelector('footer');
+                
+                actionButtons.style.display = 'flex';
+                navButtons.style.display = 'flex';
+                footer.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
