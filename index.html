@@ -204,38 +204,6 @@
             background: white;
         }
 
-        .summary-panel {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(5px);
-        }
-
-        .summary-items {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-        }
-
-        .summary-item {
-            text-align: center;
-            background: rgba(255, 255, 255, 0.2);
-            padding: 15px;
-            border-radius: 10px;
-        }
-
-        .summary-value {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        .summary-label {
-            font-size: 12px;
-            opacity: 0.8;
-        }
-
         .action-buttons {
             display: flex;
             gap: 12px;
@@ -261,6 +229,11 @@
 
         .action-button.share {
             background: linear-gradient(to right, #25D366, #128C7E);
+            color: white;
+        }
+
+        .action-button.share-link {
+            background: linear-gradient(to right, #FF0080, #FF8C00);
             color: white;
         }
 
@@ -663,10 +636,6 @@
                 flex-direction: column;
             }
             
-            .summary-items {
-                grid-template-columns: 1fr 1fr;
-            }
-            
             th, td {
                 padding: 8px 10px;
             }
@@ -683,10 +652,6 @@
             
             .logo-subtitle {
                 font-size: 18px;
-            }
-            
-            .summary-items {
-                grid-template-columns: 1fr;
             }
             
             .nav-buttons {
@@ -732,34 +697,15 @@
                     <div class="sheet-dot" id="nightSheet"></div>
                 </div>
                 
-                <!-- Panel Ringkasan -->
-                <div class="summary-panel">
-                    <div class="summary-items">
-                        <div class="summary-item">
-                            <div class="summary-value" id="totalActQty">0</div>
-                            <div class="summary-label">Total ACT QTY</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-value" id="totalGap">0</div>
-                            <div class="summary-label">Total GAP</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-value" id="positiveGaps">0</div>
-                            <div class="summary-label">GAP Positif</div>
-                        </div>
-                        <div class="summary-item">
-                            <div class="summary-value" id="negativeGaps">0</div>
-                            <div class="summary-label">GAP Negatif</div>
-                        </div>
-                    </div>
-                </div>
-                
                 <div class="action-buttons">
                     <button class="action-button save" onclick="saveToExcel()">
                         <i class="fas fa-file-excel"></i> Save to Excel
                     </button>
                     <button class="action-button share" onclick="shareToWhatsApp()">
                         <i class="fab fa-whatsapp"></i> Share to WhatsApp
+                    </button>
+                    <button class="action-button share-link" onclick="shareLinkToWhatsApp()">
+                        <i class="fab fa-whatsapp"></i> Share Link
                     </button>
                     <button class="action-button jpg-share" onclick="shareAsJpg()">
                         <i class="fas fa-image"></i> Convert to Image
@@ -941,10 +887,6 @@
         const savedIndicator = document.getElementById('savedIndicator');
         const helpButton = document.getElementById('helpButton');
         const helpModal = document.getElementById('helpModal');
-        const totalActQtyEl = document.getElementById('totalActQty');
-        const totalGapEl = document.getElementById('totalGap');
-        const positiveGapsEl = document.getElementById('positiveGaps');
-        const negativeGapsEl = document.getElementById('negativeGaps');
         const saveStatus = document.getElementById('saveStatus');
         const dataConflictModal = document.getElementById('dataConflictModal');
         const lastSavedEl = document.getElementById('last-saved');
@@ -991,7 +933,6 @@
         updateDate();
         setupAutoSave();
         setupInputNavigation();
-        updateSummaryPanel();
         
         // Fungsi untuk menghasilkan hash dari data (digunakan untuk checksum)
         function generateDataHash() {
@@ -1228,7 +1169,6 @@
                     
                     calculateGap(index);
                     debounceSave();
-                    updateSummaryPanel();
                     calculateTableTotals(); // Hitung ulang total tabel
                 }
             });
@@ -1244,7 +1184,6 @@
                     // Hitung ACT QTY berdasarkan ACT/BOX * STDRT PACK
                     calculateActQtyFromBox(index);
                     debounceSave();
-                    updateSummaryPanel();
                     calculateTableTotals(); // Hitung ulang total tabel
                 }
             });
@@ -1311,9 +1250,6 @@
                     
                     // Muat data sheet
                     loadSheetData();
-                    
-                    // Perbarui ringkasan
-                    updateSummaryPanel();
                     
                     // Kembalikan opacity
                     container.style.opacity = '1';
@@ -1438,9 +1374,6 @@
             
             // Hitung ulang total tabel
             calculateTableTotals();
-            
-            // Perbarui ringkasan
-            updateSummaryPanel();
         }
         
         // Fungsi untuk memperbarui nilai input di tabel
@@ -1497,7 +1430,6 @@
             updateInputValues();
             updateResultsDisplay();
             calculateTableTotals();
-            updateSummaryPanel();
             
             // Hapus data dari localStorage
             localStorage.removeItem('productionData');
@@ -1596,30 +1528,6 @@
             totalKiicEl.textContent = totalKiic.toLocaleString('id-ID');
             totalActQtyTableEl.textContent = totalActQty.toLocaleString('id-ID');
             totalGapTableEl.textContent = totalGap.toLocaleString('id-ID');
-        }
-        
-        // Fungsi untuk memperbarui panel ringkasan
-        function updateSummaryPanel() {
-            let totalActQty = 0;
-            let totalGap = 0;
-            let positiveGaps = 0;
-            let negativeGaps = 0;
-            
-            for (let i = 0; i < kodeInject.length; i++) {
-                totalActQty += parseFloat(actQtyValues[i]) || 0;
-                totalGap += parseFloat(gapValues[i]) || 0;
-                
-                if (gapValues[i] > 0) {
-                    positiveGaps += gapValues[i];
-                } else if (gapValues[i] < 0) {
-                    negativeGaps += gapValues[i];
-                }
-            }
-            
-            totalActQtyEl.textContent = totalActQty.toLocaleString('id-ID');
-            totalGapEl.textContent = totalGap.toLocaleString('id-ID');
-            positiveGapsEl.textContent = positiveGaps.toLocaleString('id-ID');
-            negativeGapsEl.textContent = negativeGaps.toLocaleString('id-ID');
         }
         
         // Fungsi untuk validasi input angka
@@ -1783,11 +1691,22 @@
             
             // Siapkan pesan
             let message = `Laporan Produksi ${isNightMode ? 'Night' : 'Day'} - ${new Date().toLocaleDateString('id-ID')}\n\n`;
-            message += `Total ACT QTY: ${totalActQtyEl.textContent}\n`;
-            message += `Total GAP: ${totalGapEl.textContent}\n`;
-            message += `GAP Positif: ${positiveGapsEl.textContent}\n`;
-            message += `GAP Negatif: ${negativeGapsEl.textContent}\n\n`;
             message += `Detail: ${window.location.href}`;
+            
+            // Encode message untuk URL
+            const encodedMessage = encodeURIComponent(message);
+            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
+        }
+        
+        // Fungsi untuk berbagi link via WhatsApp
+        function shareLinkToWhatsApp() {
+            // Simpan data sheet saat ini
+            saveCurrentSheetData();
+            
+            // Siapkan pesan
+            let message = `Laporan Produksi ${isNightMode ? 'Night' : 'Day'} - ${new Date().toLocaleDateString('id-ID')}\n\n`;
+            message += `Saya ingin berbagi laporan produksi dengan Anda:\n`;
+            message += `${window.location.href}`;
             
             // Encode message untuk URL
             const encodedMessage = encodeURIComponent(message);
