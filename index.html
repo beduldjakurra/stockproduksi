@@ -237,6 +237,11 @@
             color: white;
         }
 
+        .action-button.upload {
+            background: linear-gradient(to right, #8E2DE2, #4A00E0);
+            color: white;
+        }
+
         .action-button.jpg-share {
             background: linear-gradient(to right, #667eea, #764ba2);
             color: white;
@@ -631,6 +636,118 @@
             color: white;
         }
 
+        /* Modal upload */
+        .upload-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 3000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+        }
+        
+        .upload-modal.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .upload-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            position: relative;
+            text-align: center;
+        }
+        
+        .night-mode .upload-content {
+            background: #2c3e50;
+            color: #ecf0f1;
+        }
+        
+        .upload-content h2 {
+            margin-bottom: 20px;
+            color: #3498db;
+            font-weight: 700;
+        }
+        
+        .upload-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 25px;
+        }
+        
+        .upload-button {
+            padding: 12px 25px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: none;
+        }
+        
+        .upload-button.confirm {
+            background: #2ecc71;
+            color: white;
+        }
+        
+        .upload-button.cancel {
+            background: #e74c3c;
+            color: white;
+        }
+
+        .file-input-container {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px dashed #3498db;
+            border-radius: 8px;
+            background: #f8f9fa;
+            text-align: center;
+        }
+
+        .night-mode .file-input-container {
+            background: #34495e;
+            border-color: #2ecc71;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 15px;
+            background: #3498db;
+            color: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #2980b9;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .upload-info {
+            margin-top: 15px;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .night-mode .upload-info {
+            color: #bdc3c7;
+        }
+
         @media (max-width: 768px) {
             .action-buttons {
                 flex-direction: column;
@@ -700,6 +817,9 @@
                 <div class="action-buttons">
                     <button class="action-button save" onclick="saveToExcel()">
                         <i class="fas fa-file-excel"></i> Save to Excel
+                    </button>
+                    <button class="action-button upload" onclick="showUploadModal()">
+                        <i class="fas fa-upload"></i> Upload Excel
                     </button>
                     <button class="action-button share" onclick="shareToWhatsApp()">
                         <i class="fab fa-whatsapp"></i> Share to WhatsApp
@@ -827,6 +947,34 @@
         </div>
     </div>
     
+    <!-- Upload Modal -->
+    <div class="upload-modal" id="uploadModal">
+        <div class="upload-content">
+            <h2><i class="fas fa-upload"></i> Upload Data Excel</h2>
+            <p>Upload file Excel untuk mengisi data secara otomatis. Pastikan format kolom sesuai.</p>
+            
+            <div class="file-input-container">
+                <label for="fileInput" class="file-input-label">
+                    <i class="fas fa-file-excel"></i> Pilih File Excel
+                </label>
+                <input type="file" id="fileInput" accept=".xlsx, .xls">
+                <div class="upload-info">
+                    <p>Format file harus Excel (.xlsx atau .xls)</p>
+                    <p>Kolom harus sesuai dengan format: KODE INJECT, STOCK AWAL, PRODUKSI, SURCIP, SUNTER, KIIC</p>
+                </div>
+            </div>
+            
+            <div class="upload-buttons">
+                <button class="upload-button confirm" onclick="processExcelFile()">
+                    <i class="fas fa-check"></i> Proses File
+                </button>
+                <button class="upload-button cancel" onclick="hideUploadModal()">
+                    <i class="fas fa-times"></i> Batal
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- Help Modal -->
     <div class="help-modal" id="helpModal">
         <div class="help-content">
@@ -838,6 +986,7 @@
             <div class="help-tip">Tekan Enter untuk menyimpan data secara otomatis</div>
             <div class="help-tip">Data akan tersimpan otomatis setiap 30 detik</div>
             <div class="help-tip">Klik ikon <i class="fas fa-file-excel"></i> untuk menyimpan ke Excel</div>
+            <div class="help-tip">Klik ikon <i class="fas fa-upload"></i> untuk upload data dari Excel</div>
             <div class="help-tip">Klik ikon <i class="fab fa-whatsapp"></i> untuk berbagi via WhatsApp</div>
             <div class="help-tip">Klik ikon <i class="fas fa-image"></i> untuk konversi ke gambar</div>
             <div class="help-tip">Gunakan toggle Day/Night untuk beralih mode</div>
@@ -889,6 +1038,8 @@
         const helpModal = document.getElementById('helpModal');
         const saveStatus = document.getElementById('saveStatus');
         const dataConflictModal = document.getElementById('dataConflictModal');
+        const uploadModal = document.getElementById('uploadModal');
+        const fileInput = document.getElementById('fileInput');
         const lastSavedEl = document.getElementById('last-saved');
         
         // Elemen untuk total tabel
@@ -1736,6 +1887,96 @@
                 loadingIndicator.classList.remove('visible');
                 showToast('Berhasil disimpan sebagai gambar', false);
             });
+        }
+        
+        // Fungsi untuk menampilkan modal upload
+        function showUploadModal() {
+            uploadModal.classList.add('visible');
+        }
+        
+        // Fungsi untuk menyembunyikan modal upload
+        function hideUploadModal() {
+            uploadModal.classList.remove('visible');
+        }
+        
+        // Fungsi untuk memproses file Excel
+        function processExcelFile() {
+            const file = fileInput.files[0];
+            if (!file) {
+                showToast('Pilih file Excel terlebih dahulu', true);
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    
+                    // Ambil sheet pertama
+                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                    
+                    // Konversi ke JSON
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // Proses data
+                    processExcelData(jsonData);
+                    
+                    hideUploadModal();
+                    showToast('Data berhasil diupload dari Excel', false);
+                } catch (error) {
+                    console.error('Error processing Excel file:', error);
+                    showToast('Gagal memproses file Excel', true);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // Fungsi untuk memproses data Excel
+        function processExcelData(data) {
+            // Cari indeks kolom
+            const headers = data[0];
+            const kodeInjectIndex = headers.findIndex(h => h.toString().toLowerCase().includes('kode'));
+            const stockAwalIndex = headers.findIndex(h => h.toString().toLowerCase().includes('stock') && h.toString().toLowerCase().includes('awal'));
+            const produksiIndex = headers.findIndex(h => h.toString().toLowerCase().includes('produksi'));
+            const surcipIndex = headers.findIndex(h => h.toString().toLowerCase().includes('surcip'));
+            const sunterIndex = headers.findIndex(h => h.toString().toLowerCase().includes('sunter'));
+            const kiicIndex = headers.findIndex(h => h.toString().toLowerCase().includes('kiic'));
+            
+            // Loop melalui data
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                
+                const kode = row[kodeInjectIndex];
+                const stockAwal = row[stockAwalIndex];
+                const produksi = row[produksiIndex];
+                const surcip = row[surcipIndex];
+                const sunter = row[sunterIndex];
+                const kiic = row[kiicIndex];
+                
+                // Cari indeks kode inject yang sesuai
+                const index = kodeInject.findIndex(k => k === kode);
+                if (index !== -1) {
+                    // Isi nilai
+                    if (stockAwal !== undefined) inputValues.stockAwal[index] = stockAwal;
+                    if (produksi !== undefined) inputValues.produksi[index] = produksi;
+                    if (surcip !== undefined) inputValues.surcip[index] = surcip;
+                    if (sunter !== undefined) inputValues.sunter[index] = sunter;
+                    if (kiic !== undefined) inputValues.kiic[index] = kiic;
+                    
+                    // Hitung ulang
+                    calculateGap(index);
+                }
+            }
+            
+            // Perbarui tampilan
+            updateInputValues();
+            updateResultsDisplay();
+            calculateTableTotals();
+            
+            // Simpan data
+            saveDataToLocalStorage();
         }
         
         // Pada akhir script, tambahkan event listener untuk memuat data saat halaman dimuat
