@@ -1,1997 +1,658 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PT Fuji Seat Indonesia - Laporan Produksi</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: #333;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
-
-        body.night-mode {
-            background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
-        }
-
-        .cover-screen {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            transition: opacity 0.8s ease;
-        }
-
-        .cover-screen.hidden {
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .logo-container {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
-        .logo {
-            font-size: 42px;
-            font-weight: 800;
-            color: white;
-            text-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-            letter-spacing: 2px;
-        }
-
-        .logo-subtitle {
-            font-size: 22px;
-            color: rgba(255, 255, 255, 0.9);
-            margin-top: 10px;
-            font-weight: 300;
-        }
-
-        .enter-button {
-            background: white;
-            color: #764ba2;
-            border: none;
-            padding: 15px 40px;
-            font-size: 18px;
-            font-weight: 600;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-            transition: all 0.3s ease;
-        }
-
-        .enter-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .enter-button:active {
-            transform: translateY(0);
-        }
-
-        .main-app {
-            display: none;
-            width: 100%;
-            max-width: 1200px;
-        }
-
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .night-mode .container {
-            background: #2c3e50;
-            color: #ecf0f1;
-        }
-
-        header {
-            padding: 25px 30px;
-            background: linear-gradient(to right, #4b6cb7, #182848);
-            color: white;
-        }
-
-        .night-mode header {
-            background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
-        }
-
-        h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .date {
-            font-size: 16px;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-
-        .mode-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 60px;
-            height: 30px;
-        }
-
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 22px;
-            width: 22px;
-            left: 4px;
-            bottom: 4px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-
-        input:checked + .slider {
-            background-color: #2196F3;
-        }
-
-        input:checked + .slider:before {
-            transform: translateX(30px);
-        }
-
-        .sheet-indicator {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .sheet-dot {
-            width: 15px;
-            height: 15px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-        }
-
-        .sheet-dot.active {
-            background: white;
-        }
-
-        .action-buttons {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-
-        .action-button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .action-button.save {
-            background: linear-gradient(to right, #00b09b, #96c93d);
-            color: white;
-        }
-
-        .action-button.share {
-            background: linear-gradient(to right, #25D366, #128C7E);
-            color: white;
-        }
-
-        .action-button.share-link {
-            background: linear-gradient(to right, #FF0080, #FF8C00);
-            color: white;
-        }
-
-        .action-button.upload {
-            background: linear-gradient(to right, #8E2DE2, #4A00E0);
-            color: white;
-        }
-
-        .action-button.jpg-share {
-            background: linear-gradient(to right, #667eea, #764ba2);
-            color: white;
-        }
-
-        .action-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        .table-container {
-            padding: 20px;
-            overflow-x: auto;
-        }
-
-        .table-container.hidden {
-            display: none;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
-        }
-
-        th, td {
-            padding: 12px 15px;
-            text-align: center;
-            border-bottom: 1px solid #e0e0e0;
-        }
-
-        .night-mode th, .night-mode td {
-            border-bottom: 1px solid #34495e;
-        }
-
-        th {
-            background: linear-gradient(to bottom, #f5f7fa, #e4e8eb);
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-        }
-
-        .night-mode th {
-            background: linear-gradient(to bottom, #2c3e50, #34495e);
-            color: #ecf0f1;
-        }
-
-        tbody tr:hover {
-            background-color: #f9f9f9;
-        }
-
-        .night-mode tbody tr:hover {
-            background-color: #34495e;
-        }
-
-        tfoot {
-            font-weight: 700;
-            background: #f5f7fa;
-        }
-
-        .night-mode tfoot {
-            background: #34495e;
-        }
-
-        .kode-inject {
-            text-align: left;
-            font-weight: 600;
-        }
-
-        input[type="number"] {
-            width: 80px;
-            padding: 8px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            text-align: center;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        input[type="number"]:focus {
-            border-color: #4b6cb7;
-            box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
-            outline: none;
-        }
-
-        .night-mode input[type="number"] {
-            background: #2c3e50;
-            border: 1px solid #34495e;
-            color: #ecf0f1;
-        }
-
-        .result-cell {
-            font-weight: 600;
-            background: #f1f8ff;
-        }
-
-        .night-mode .result-cell {
-            background: #1a2530;
-        }
-
-        .input-hint {
-            font-size: 10px;
-            color: #888;
-            margin-top: 4px;
-        }
-
-        .night-mode .input-hint {
-            color: #95a5a6;
-        }
-
-        .nav-buttons {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px 20px;
-        }
-
-        .nav-button {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background: linear-gradient(to right, #4b6cb7, #182848);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .night-mode .nav-button {
-            background: linear-gradient(to right, #0f2027, #203a43);
-        }
-
-        .nav-button.hidden {
-            display: none;
-        }
-
-        .nav-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-        }
-
-        footer {
-            text-align: center;
-            padding: 20px;
-            background: #f5f7fa;
-            color: #7f8c8d;
-            font-size: 14px;
-        }
-
-        .night-mode footer {
-            background: #34495e;
-            color: #bdc3c7;
-        }
-
-        #last-saved {
-            margin-top: 5px;
-            font-size: 12px;
-        }
-
-        .loading-indicator, .status-indicator, .toast, .saved-indicator {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 12px 25px;
-            border-radius: 50px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-        }
-
-        .loading-indicator.visible, .status-indicator.visible, .toast.visible, .saved-indicator.visible {
-            opacity: 1;
-        }
-
-        .toast.error {
-            background: rgba(231, 76, 60, 0.9);
-        }
-
-        .keyboard-navigation-hint {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 1000;
-        }
-
-        .help-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(to right, #4b6cb7, #182848);
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 20px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-            z-index: 1000;
-            transition: all 0.3s;
-        }
-
-        .night-mode .help-button {
-            background: linear-gradient(to right, #0f2027, #203a43);
-        }
-
-        .help-button:hover {
-            transform: scale(1.1);
-        }
-
-        .help-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-
-        .help-modal.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .help-content {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            position: relative;
-        }
-
-        .night-mode .help-content {
-            background: #2c3e50;
-            color: #ecf0f1;
-        }
-
-        .help-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            font-size: 20px;
-            cursor: pointer;
-        }
-
-        .help-content h2 {
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .help-tip {
-            padding: 12px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .night-mode .help-tip {
-            background: #34495e;
-        }
-
-        /* Indikator status penyimpanan */
-        .save-status {
-            position: fixed;
-            bottom: 20px;
-            right: 90px;
-            background: #27ae60;
-            color: white;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        
-        .save-status.visible {
-            opacity: 1;
-        }
-        
-        .save-status.saving {
-            background: #f39c12;
-        }
-        
-        .save-status.error {
-            background: #e74c3c;
-        }
-        
-        /* Modal konflik data */
-        .data-conflict-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        .data-conflict-modal.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .conflict-content {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            text-align: center;
-        }
-        
-        .night-mode .conflict-content {
-            background: #2c3e50;
-            color: #ecf0f1;
-        }
-        
-        .conflict-content h2 {
-            margin-bottom: 20px;
-            color: #e74c3c;
-            font-weight: 700;
-        }
-        
-        .conflict-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-        }
-        
-        .conflict-button {
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-        
-        .conflict-button.keep {
-            background: #3498db;
-            color: white;
-        }
-        
-        .conflict-button.load {
-            background: #2ecc71;
-            color: white;
-        }
-
-        /* Modal upload */
-        .upload-modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 3000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s;
-        }
-        
-        .upload-modal.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-        
-        .upload-content {
-            background: white;
-            border-radius: 16px;
-            padding: 30px;
-            max-width: 500px;
-            width: 90%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            position: relative;
-            text-align: center;
-        }
-        
-        .night-mode .upload-content {
-            background: #2c3e50;
-            color: #ecf0f1;
-        }
-        
-        .upload-content h2 {
-            margin-bottom: 20px;
-            color: #3498db;
-            font-weight: 700;
-        }
-        
-        .upload-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin-top: 25px;
-        }
-        
-        .upload-button {
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            border: none;
-        }
-        
-        .upload-button.confirm {
-            background: #2ecc71;
-            color: white;
-        }
-        
-        .upload-button.cancel {
-            background: #e74c3c;
-            color: white;
-        }
-
-        .file-input-container {
-            margin: 20px 0;
-            padding: 20px;
-            border: 2px dashed #3498db;
-            border-radius: 8px;
-            background: #f8f9fa;
-            text-align: center;
-        }
-
-        .night-mode .file-input-container {
-            background: #34495e;
-            border-color: #2ecc71;
-        }
-
-        .file-input-label {
-            display: block;
-            padding: 15px;
-            background: #3498db;
-            color: white;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .file-input-label:hover {
-            background: #2980b9;
-        }
-
-        #fileInput {
-            display: none;
-        }
-
-        .upload-info {
-            margin-top: 15px;
-            font-size: 14px;
-            color: #7f8c8d;
-        }
-
-        .night-mode .upload-info {
-            color: #bdc3c7;
-        }
-
-        @media (max-width: 768px) {
-            .action-buttons {
-                flex-direction: column;
-            }
-            
-            th, td {
-                padding: 8px 10px;
-            }
-            
-            input[type="number"] {
-                width: 60px;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .logo {
-                font-size: 32px;
-            }
-            
-            .logo-subtitle {
-                font-size: 18px;
-            }
-            
-            .nav-buttons {
-                flex-direction: column;
-                gap: 10px;
-            }
-            
-            .nav-button {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-    </style>
-</head>
-<body>
-    <!-- Cover Screen -->
-    <div class="cover-screen" id="coverScreen">
-        <div class="logo-container">
-            <div class="logo">PT FUJI SEAT INDONESIA</div>
-            <div class="logo-subtitle">Laporan Produksi Harian</div>
-        </div>
-        <button class="enter-button" id="enterButton">MASUK</button>
-    </div>
-
-    <!-- Main App (Awalnya Tersembunyi) -->
-    <div class="main-app" id="mainApp">
-        <div class="container">
-            <header>
-                <h1 id="pageTitle"><i class="fas fa-industry"></i> STOCK PRODUKSI DAY</h1>
-                <div class="date" id="currentDate">Senin, 12 April 2023</div>
-                
-                <div class="mode-toggle">
-                    <span>Day</span>
-                    <label class="toggle-switch">
-                        <input type="checkbox" id="modeToggle">
-                        <span class="slider"></span>
-                    </label>
-                    <span>Night</span>
-                </div>
-                
-                <div class="sheet-indicator">
-                    <div class="sheet-dot active" id="daySheet"></div>
-                    <div class="sheet-dot" id="nightSheet"></div>
-                </div>
-                
-                <div class="action-buttons">
-                    <button class="action-button save" onclick="saveToExcel()">
-                        <i class="fas fa-file-excel"></i> Save to Excel
-                    </button>
-                    <button class="action-button upload" onclick="showUploadModal()">
-                        <i class="fas fa-upload"></i> Upload Excel
-                    </button>
-                    <button class="action-button share" onclick="shareToWhatsApp()">
-                        <i class="fab fa-whatsapp"></i> Share to WhatsApp
-                    </button>
-                    <button class="action-button share-link" onclick="shareLinkToWhatsApp()">
-                        <i class="fab fa-whatsapp"></i> Share Link
-                    </button>
-                    <button class="action-button jpg-share" onclick="shareAsJpg()">
-                        <i class="fas fa-image"></i> Convert to Image
-                    </button>
-                </div>
-            </header>
-
-            <!-- Tabel Utama -->
-            <div class="table-container" id="mainTableContainer">
-                <table id="mainTable">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-barcode"></i> KODE INJECT</th>
-                            <th><i class="fas fa-boxes"></i> STOCK AWAL</th>
-                            <th><i class="fas fa-cogs"></i> PRODUKSI</th>
-                            <th><i class="fas fa-truck-loading"></i> SURCIP</th>
-                            <th><i class="fas fa-truck-moving"></i> SUNTER</th>
-                            <th><i class="fas fa-warehouse"></i> KIIC</th>
-                            <th><i class="fas fa-calculator"></i> ACT QTY</th>
-                            <th><i class="fas fa-chart-line"></i> GAP</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Baris akan diisi oleh JavaScript -->
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td class="kode-inject">TOTAL</td>
-                            <td id="total-stock-awal">0</td>
-                            <td id="total-produksi">0</td>
-                            <td id="total-surcip">0</td>
-                            <td id="total-sunter">0</td>
-                            <td id="total-kiic">0</td>
-                            <td id="total-act-qty-table">0</td>
-                            <td id="total-gap-table">0</td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-
-            <!-- Tabel Kedua (Awalnya Tersembunyi) -->
-            <div class="table-container hidden" id="secondTableContainer">
-                <table id="secondTable" class="table-2">
-                    <thead>
-                        <tr>
-                            <th><i class="fas fa-barcode"></i> KODE INJECT</th>
-                            <th><i class="fas fa-weight-hanging"></i> STDRT PACK</th>
-                            <th><i class="fas fa-box-open"></i> ACT /BOX</th>
-                            <th><i class="fas fa-calculator"></i> ACT QTY</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Baris akan diisi oleh JavaScript -->
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- Tombol Navigasi -->
-            <div class="nav-buttons">
-                <button id="prevButton" class="nav-button prev-button hidden">
-                    <i class="fas fa-arrow-left"></i> Kembali
-                </button>
-                <button id="nextButton" class="nav-button next-button">
-                    Selanjutnya <i class="fas fa-arrow-right"></i>
-                </button>
-            </div>
-
-            <footer>
-                <p>Laporan Produksi Harian - PT Fuji Seat Indonesia © 2023</p>
-                <p id="last-saved">Terakhir disimpan: -</p>
-            </footer>
-        </div>
-    </div>
-
-    <!-- Loading Indicator -->
-    <div class="loading-indicator" id="loadingIndicator">
-        <i class="fas fa-spinner fa-spin"></i> Menyimpan...
-    </div>
-
-    <!-- Status Indicator -->
-    <div class="status-indicator" id="statusIndicator">
-        <i class="fas fa-check-circle"></i> Data tersimpan otomatis
-    </div>
-
-    <!-- Toast Notification -->
-    <div class="toast" id="toast">
-        <i class="fas fa-check-circle"></i> Operasi berhasil
-    </div>
-    
-    <!-- Saved Indicator -->
-    <div class="saved-indicator" id="savedIndicator">
-        <i class="fas fa-save"></i> Data tersimpan
-    </div>
-    
-    <!-- Keyboard Navigation Hint -->
-    <div class="keyboard-navigation-hint">
-        <i class="fas fa-keyboard"></i> Gunakan Tab untuk berpindah input, Enter untuk simpan
-    </div>
-    
-    <!-- Help Button -->
-    <div class="help-button" id="helpButton">
-        <i class="fas fa-question"></i>
-    </div>
-    
-    <!-- Save Status Indicator -->
-    <div class="save-status" id="saveStatus">
-        <i class="fas fa-check-circle"></i> Tersimpan
-    </div>
-    
-    <!-- Data Conflict Modal -->
-    <div class="data-conflict-modal" id="dataConflictModal">
-        <div class="conflict-content">
-            <h2><i class="fas fa-exclamation-triangle"></i> Konflik Data</h2>
-            <p>Data yang dimuat dari perangkat lain lebih baru daripada data yang ada di perangkat ini. Apa yang ingin Anda lakukan?</p>
-            <div class="conflict-buttons">
-                <button class="conflict-button keep" onclick="handleDataConflict('keep')">Pertahankan Data Saya</button>
-                <button class="conflict-button load" onclick="handleDataConflict('load')">Muat Data Baru</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Upload Modal -->
-    <div class="upload-modal" id="uploadModal">
-        <div class="upload-content">
-            <h2><i class="fas fa-upload"></i> Upload Data Excel</h2>
-            <p>Upload file Excel untuk mengisi data secara otomatis. Pastikan format kolom sesuai.</p>
-            
-            <div class="file-input-container">
-                <label for="fileInput" class="file-input-label">
-                    <i class="fas fa-file-excel"></i> Pilih File Excel
-                </label>
-                <input type="file" id="fileInput" accept=".xlsx, .xls">
-                <div class="upload-info">
-                    <p>Format file harus Excel (.xlsx atau .xls)</p>
-                    <p>Kolom harus sesuai dengan format: KODE INJECT, STOCK AWAL, PRODUKSI, SURCIP, SUNTER, KIIC</p>
-                </div>
-            </div>
-            
-            <div class="upload-buttons">
-                <button class="upload-button confirm" onclick="processExcelFile()">
-                    <i class="fas fa-check"></i> Proses File
-                </button>
-                <button class="upload-button cancel" onclick="hideUploadModal()">
-                    <i class="fas fa-times"></i> Batal
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Help Modal -->
-    <div class="help-modal" id="helpModal">
-        <div class="help-content">
-            <div class="help-close" onclick="document.getElementById('helpModal').classList.remove('visible')">
-                <i class="fas fa-times"></i>
-            </div>
-            <h2>Panduan Penggunaan</h2>
-            <div class="help-tip">Gunakan Tab untuk berpindah antar kolom input</div>
-            <div class="help-tip">Tekan Enter untuk menyimpan data secara otomatis</div>
-            <div class="help-tip">Data akan tersimpan otomatis setiap 30 detik</div>
-            <div class="help-tip">Klik ikon <i class="fas fa-file-excel"></i> untuk menyimpan ke Excel</div>
-            <div class="help-tip">Klik ikon <i class="fas fa-upload"></i> untuk upload data dari Excel</div>
-            <div class="help-tip">Klik ikon <i class="fab fa-whatsapp"></i> untuk berbagi via WhatsApp</div>
-            <div class="help-tip">Klik ikon <i class="fas fa-image"></i> untuk konversi ke gambar</div>
-            <div class="help-tip">Gunakan toggle Day/Night untuk beralih mode</div>
-            <button style="margin-top: 20px; padding: 12px 20px; background: linear-gradient(to right, #667eea, #764ba2); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;" onclick="document.getElementById('helpModal').classList.remove('visible')">Tutup</button>
-        </div>
-    </div>
-
-    <script>
-        // Data untuk kedua tabel
-        const kodeInject = [
-            "J-303 RH", "J-305", "J-306 RH", "J-306 LH", "J-307", 
-            "J-308 RH", "J-308 LH", "J-309", "J-1401 RH", "J-1402 LH", 
-            "J-1403 RH", "J-1403 LH", "J-1404 RH", "J-1404 LH", "J-1405 RH", 
-            "J-1405 LH", "J-1406 RH", "J-1406 LH", "J-1407 RH", "J-1407 LH", 
-            "J-1408 RH", "J-1408 LH", "J-1409 RH", "J-1409 LH", "J-1410 RH", 
-            "J-1411 LH", "J-1412 RH", "J-1413 LH", "J-5501", "J-5502", 
-            "J-5503", "J-5504", "J-5505", "J-5506", "J-5508 RH", 
-            "J-5508 LH", "J-5509 RH", "J-5509 LH", "136B", "202B"
-        ];
-
-        const stdrtPack = [
-            104, 200, 32, 32, 52, 15, 15, 48, 72, 72, 
-            40, 40, 60, 60, 9, 9, 10, 10, 144, 144, 
-            120, 120, 40, 40, 18, 18, 24, 24, 11, 11, 
-            12, 12, 192, 180, 200, 200, 24, 24, 25, 25
-        ];
-
-        // Elemen UI
-        const coverScreen = document.getElementById('coverScreen');
-        const enterButton = document.getElementById('enterButton');
-        const mainApp = document.getElementById('mainApp');
-        const mainTableContainer = document.getElementById('mainTableContainer');
-        const secondTableContainer = document.getElementById('secondTableContainer');
-        const mainTableBody = document.querySelector('#mainTable tbody');
-        const secondTableBody = document.querySelector('#secondTable tbody');
-        const prevButton = document.getElementById('prevButton');
-        const nextButton = document.getElementById('nextButton');
-        const modeToggle = document.getElementById('modeToggle');
-        const pageTitle = document.getElementById('pageTitle');
-        const currentDate = document.getElementById('currentDate');
-        const daySheet = document.getElementById('daySheet');
-        const nightSheet = document.getElementById('nightSheet');
-        const container = document.querySelector('.container');
-        const loadingIndicator = document.getElementById('loadingIndicator');
-        const statusIndicator = document.getElementById('statusIndicator');
-        const toast = document.getElementById('toast');
-        const savedIndicator = document.getElementById('savedIndicator');
-        const helpButton = document.getElementById('helpButton');
-        const helpModal = document.getElementById('helpModal');
-        const saveStatus = document.getElementById('saveStatus');
-        const dataConflictModal = document.getElementById('dataConflictModal');
-        const uploadModal = document.getElementById('uploadModal');
-        const fileInput = document.getElementById('fileInput');
-        const lastSavedEl = document.getElementById('last-saved');
-        
-        // Elemen untuk total tabel
-        const totalStockAwalEl = document.getElementById('total-stock-awal');
-        const totalProduksiEl = document.getElementById('total-produksi');
-        const totalSurcipEl = document.getElementById('total-surcip');
-        const totalSunterEl = document.getElementById('total-sunter');
-        const totalKiicEl = document.getElementById('total-kiic');
-        const totalActQtyTableEl = document.getElementById('total-act-qty-table');
-        const totalGapTableEl = document.getElementById('total-gap-table');
-        
-        // Status aplikasi
-        let currentView = 'main';
-        let isNightMode = false;
-        let currentSheet = 1;
-        const sheetsData = {
-            1: {}, // Sheet Day
-            2: {}  // Sheet Night
-        };
-        
-        // Data untuk menyimpan nilai
-        const actQtyValues = {};
-        const gapValues = {};
-        const inputValues = {
-            stockAwal: {},
-            produksi: {},
-            surcip: {},
-            sunter: {},
-            kiic: {},
-            actBox: {}
-        };
-        
-        // Interval ID untuk auto-save
-        let autoSaveInterval;
-        let saveTimeout;
-        let isSaving = false;
-        let lastSavedHash = '';
-        
-        // Inisialisasi
-        initializeTables();
-        setupEventListeners();
-        updateDate();
-        setupAutoSave();
-        setupInputNavigation();
-        
-        // Fungsi untuk menghasilkan hash dari data (digunakan untuk checksum)
-        function generateDataHash() {
-            const dataString = JSON.stringify({
-                inputValues,
-                actQtyValues,
-                gapValues,
-                sheetsData
-            });
-            
-            // Simple hash function
-            let hash = 0;
-            for (let i = 0; i < dataString.length; i++) {
-                const char = dataString.charCodeAt(i);
-                hash = ((hash << 5) - hash) + char;
-                hash = hash & hash; // Convert to 32bit integer
-            }
-            return hash.toString();
-        }
-        
-        // Fungsi untuk memuat data dari localStorage dengan validasi
-        function loadDataFromLocalStorage() {
-            try {
-                const savedData = localStorage.getItem('productionData');
-                if (savedData) {
-                    const parsedData = JSON.parse(savedData);
-                    
-                    // Validasi checksum
-                    if (parsedData.checksum && parsedData.checksum === generateDataHash()) {
-                        // Muat data sheets
-                        if (parsedData.sheetsData) {
-                            // Deep copy data
-                            for (let sheet in parsedData.sheetsData) {
-                                sheetsData[sheet] = JSON.parse(JSON.stringify(parsedData.sheetsData[sheet]));
-                            }
-                        }
-                        
-                        // Muat timestamp
-                        if (parsedData.lastSaved) {
-                            const lastSavedDate = new Date(parsedData.lastSaved);
-                            lastSavedEl.textContent = `Terakhir disimpan: ${lastSavedDate.toLocaleString('id-ID')}`;
-                        }
-                        
-                        // Muat data sheet aktif
-                        loadSheetData();
-                        
-                        showToast('Data sebelumnya dimuat', false);
-                        return true;
-                    } else {
-                        // Data tidak valid, reset data
-                        showToast('Data tidak valid, menggunakan data baru', true);
-                        resetData();
-                        return false;
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading from localStorage:', error);
-                // Jika terjadi error, reset data
-                resetData();
-                return false;
-            }
+const el = {
+        coverScreen: document.getElementById('coverScreen'),
+        enterButton: document.getElementById('enterButton'),
+        mainApp: document.getElementById('mainApp'),
+        mainTableContainer: document.getElementById('mainTableContainer'),
+        secondTableContainer: document.getElementById('secondTableContainer'),
+        mainTableBody: document.getElementById('mainTableBody'),
+        secondTableBody: document.getElementById('secondTableBody'),
+        prevButton: document.getElementById('prevButton'),
+        nextButton: document.getElementById('nextButton'),
+        modeToggle: document.getElementById('modeToggle'),
+        pageTitle: document.getElementById('pageTitle'),
+        currentDate: document.getElementById('currentDate'),
+        daySheet: document.getElementById('daySheet'),
+        nightSheet: document.getElementById('nightSheet'),
+        loadingIndicator: document.getElementById('loadingIndicator'),
+        statusIndicator: document.getElementById('statusIndicator'),
+        toast: document.getElementById('toast'),
+        confirmationModal: document.getElementById('confirmationModal'),
+        fileInput: document.getElementById('fileInput'),
+        container: document.querySelector('.container'),
+        progressBar: document.getElementById('progressBar')
+    };
+
+    function checkXLSXAvailability() {
+        if (typeof XLSX === 'undefined') {
+            console.error('XLSX library is not loaded.');
             return false;
         }
-        
-        // Fungsi untuk menyimpan data ke localStorage dengan checksum
-        function saveDataToLocalStorage() {
-            if (isSaving) return false;
-            
-            isSaving = true;
-            updateSaveStatus('saving');
-            
-            try {
+        return true;
+    }
+
+    function init() {
+        updateDate();
+        loadDataFromLocalStorage();
+        initializeTables();
+        setupEventListeners();
+        setupAutoSave();
+        setupInputNavigation();
+        if (el.progressBar) window.addEventListener('scroll', updateProgressBar);
+        document.addEventListener('keydown', handleKeyboard);
+    }
+
+    function updateDate() {
+        const now = new Date();
+        el.currentDate.textContent = now.toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    }
+
+    function initializeTables() {
+        if (!el.mainTableBody || !el.secondTableBody) return;
+        el.mainTableBody.innerHTML = '';
+        el.secondTableBody.innerHTML = '';
+        for (let i = 0; i < N; i++) {
+            const row1 = document.createElement('tr');
+            row1.innerHTML = `
+                <td class="kode-inject" aria-label="Kode ${kodeInject[i]}">${kodeInject[i]}</td>
+                <td><input type="number" class="stock-awal-input" data-index="${i}" value="${inputValues.stockAwal[i] || ''}" min="0" max="999999" aria-label="Stock Awal ${kodeInject[i]}"></td>
+                <td><input type="number" class="produksi-input" data-index="${i}" value="${inputValues.produksi[i] || ''}" min="0" max="999999" aria-label="Produksi ${kodeInject[i]}"></td>
+                <td><input type="number" class="surcip-input" data-index="${i}" value="${inputValues.surcip[i] || ''}" min="0" max="999999" aria-label="Surcip ${kodeInject[i]}"></td>
+                <td><input type="number" class="sunter-input" data-index="${i}" value="${inputValues.sunter[i] || ''}" min="0" max="999999" aria-label="Sunter ${kodeInject[i]}"></td>
+                <td><input type="number" class="kiic-input" data-index="${i}" value="${inputValues.kiic[i] || ''}" min="0" max="999999" aria-label="KIIC ${kodeInject[i]}"></td>
+                <td class="act-qty-cell result-cell" id="act-qty-${i}" aria-label="ACT QTY ${kodeInject[i]}" title="Dihitung dari tabel kedua: STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>
+                <td class="gap-cell result-cell" id="gap-${i}" aria-label="GAP ${kodeInject[i]}" title="Rumus: ACT QTY - (STOCK AWAL + PRODUKSI - SURCIP - SUNTER - KIIC)">${gapValues[i] || '-'}</td>`;
+            el.mainTableBody.appendChild(row1);
+            const row2 = document.createElement('tr');
+            row2.innerHTML = `
+                <td class="kode-inject">${kodeInject[i]}</td>
+                <td aria-label="STDRT PACK ${kodeInject[i]}">${stdrtPack[i]}</td>
+                <td><input type="number" class="act-box-input" data-index="${i}" value="${inputValues.actBox[i] || ''}" min="0" max="9999" aria-label="ACT Box ${kodeInject[i]}"></td>
+                <td class="act-qty-cell-2 result-cell" id="act-qty-2-${i}" aria-label="ACT QTY 2 ${kodeInject[i]}" title="STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>`;
+            el.secondTableBody.appendChild(row2);
+        }
+        setupEventDelegation();
+        updateResultsDisplay();
+    }
+
+    function setupEventDelegation() {
+        if (!el.mainTableContainer || !el.secondTableContainer) return;
+        el.mainTableContainer.addEventListener('input', e => {
+            if (e.target.matches('.stock-awal-input,.produksi-input,.surcip-input,.sunter-input,.kiic-input')) {
+                const idx = parseInt(e.target.dataset.index);
+                const cls = e.target.classList[0];
+                const val = e.target.value;
+                inputValues[cls.replace('-input', '')][idx] = val;
+                calculateGap(idx);
+                debounceSave();
+            }
+        });
+        el.secondTableContainer.addEventListener('input', e => {
+            if (e.target.matches('.act-box-input')) {
+                const idx = parseInt(e.target.dataset.index);
+                const val = e.target.value;
+                inputValues.actBox[idx] = val;
+                calculateActQty(idx);
+                debounceSave();
+            }
+        });
+    }
+
+    function setupEventListeners() {
+        if (!el.enterButton || !el.nextButton || !el.prevButton || !el.modeToggle) return;
+        el.enterButton.addEventListener('click', e => {
+            const rect = e.target.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const ripple = document.createElement('span');
+            ripple.className = 'ripple';
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            el.enterButton.appendChild(ripple);
+            setTimeout(() => ripple.remove(), 600);
+            el.coverScreen.classList.add('hidden');
+            setTimeout(() => {
+                el.mainApp.style.display = 'block';
+            }, 800);
+        });
+        el.nextButton.addEventListener('click', () => {
+            currentView === 'main' ? showSecondTable() : (calculateAllActQty(), showMainTable());
+        });
+        el.prevButton.addEventListener('click', showMainTable);
+        el.modeToggle.addEventListener('change', () => {
+            if (!el.container) return;
+            el.container.classList.add('fade-effect');
+            setTimeout(() => {
+                isNightMode = this.checked;
+                document.body.classList.toggle('night-mode', isNightMode);
+                el.pageTitle.innerHTML = `<i class="fas fa-industry"></i> STOCK PRODUKSI ${isNightMode ? 'NIGHT' : 'DAY'}`;
                 saveCurrentSheetData();
-                
-                const dataToSave = {
-                    sheetsData,
-                    lastSaved: new Date().toISOString(),
-                    checksum: generateDataHash()
-                };
-                
-                localStorage.setItem('productionData', JSON.stringify(dataToSave));
-                
-                // Update last saved time
-                lastSavedEl.textContent = `Terakhir disimpan: ${new Date().toLocaleString('id-ID')}`;
-                
-                updateSaveStatus('saved');
-                isSaving = false;
-                return true;
-            } catch (error) {
-                console.error('Error saving to localStorage:', error);
-                updateSaveStatus('error');
-                isSaving = false;
-                return false;
-            }
-        }
-        
-        // Fungsi untuk memperbarui status penyimpanan
-        function updateSaveStatus(status) {
-            saveStatus.className = 'save-status visible';
-            
-            switch(status) {
-                case 'saving':
-                    saveStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menyimpan...';
-                    saveStatus.classList.add('saving');
-                    break;
-                case 'saved':
-                    saveStatus.innerHTML = '<i class="fas fa-check-circle"></i> Tersimpan';
-                    saveStatus.classList.remove('saving', 'error');
-                    // Sembunyikan setelah 3 detik
-                    setTimeout(() => {
-                        saveStatus.classList.remove('visible');
-                    }, 3000);
-                    break;
-                case 'error':
-                    saveStatus.innerHTML = '<i class="fas fa-exclamation-circle"></i> Gagal menyimpan';
-                    saveStatus.classList.add('error');
-                    // Sembunyikan setelah 5 detik
-                    setTimeout(() => {
-                        saveStatus.classList.remove('visible');
-                    }, 5000);
-                    break;
-            }
-        }
-        
-        // Fungsi untuk menangani konflik data
-        function handleDataConflict(action) {
-            dataConflictModal.classList.remove('visible');
-            
-            if (action === 'load') {
-                // Muat data dari localStorage
-                loadDataFromLocalStorage();
-                showToast('Data terbaru telah dimuat', false);
-            } else {
-                // Simpan data saat ini untuk menimpa data yang ada
-                saveDataToLocalStorage();
-                showToast('Data Anda telah disimpan', false);
-            }
-        }
-        
-        // Fungsi untuk memeriksa dan menyinkronkan data
-        function checkDataSynchronization() {
-            const savedData = localStorage.getItem('productionData');
-            if (savedData) {
-                try {
-                    const parsedData = JSON.parse(savedData);
-                    const currentHash = generateDataHash();
-                    
-                    // Jika checksum berbeda, ada konflik data
-                    if (parsedData.checksum && parsedData.checksum !== currentHash) {
-                        // Tampilkan modal konflik data
-                        dataConflictModal.classList.add('visible');
-                    }
-                } catch (error) {
-                    console.error('Error checking data synchronization:', error);
-                }
-            }
-        }
-        
-        // Fungsi untuk menginisialisasi kedua tabel
-        function initializeTables() {
-            // Kosongkan tubuh tabel
-            mainTableBody.innerHTML = '';
-            secondTableBody.innerHTML = '';
-            
-            // Isi tabel utama
-            kodeInject.forEach((kode, index) => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="kode-inject">${kode}</td>
-                    <td>
-                        <input type="number" class="stock-awal-input" data-index="${index}" value="${inputValues.stockAwal[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td>
-                        <input type="number" class="produksi-input" data-index="${index}" value="${inputValues.produksi[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td>
-                        <input type="number" class="surcip-input" data-index="${index}" value="${inputValues.surcip[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td>
-                        <input type="number" class="sunter-input" data-index="${index}" value="${inputValues.sunter[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td>
-                        <input type="number" class="kiic-input" data-index="${index}" value="${inputValues.kiic[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td class="act-qty-cell result-cell" id="act-qty-${index}">${actQtyValues[index] !== undefined ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
-                    <td class="gap-cell result-cell" id="gap-${index}">${gapValues[index] !== undefined ? gapValues[index].toLocaleString('id-ID') : '-'}</td>
-                `;
-                
-                mainTableBody.appendChild(row);
-            });
-            
-            // Isi tabel kedua
-            kodeInject.forEach((kode, index) => {
-                const row = document.createElement('tr');
-                
-                row.innerHTML = `
-                    <td class="kode-inject">${kode}</td>
-                    <td>${stdrtPack[index]}</td>
-                    <td>
-                        <input type="number" class="act-box-input" data-index="${index}" value="${inputValues.actBox[index] || ''}" min="0">
-                        <div class="input-hint">Tekan Tab untuk lanjut</div>
-                    </td>
-                    <td class="act-qty-cell-2 result-cell" id="act-qty-2-${index}">${actQtyValues[index] !== undefined ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
-                `;
-                
-                secondTableBody.appendChild(row);
-            });
-            
-            // Gunakan event delegation untuk performa yang lebih baik
-            document.querySelector('.table-container').addEventListener('input', function(e) {
-                const target = e.target;
-                if (target.matches('.stock-awal-input, .produksi-input, .surcip-input, .sunter-input, .kiic-input')) {
-                    const index = target.getAttribute('data-index');
-                    const value = target.value;
-                    
-                    // Simpan nilai input
-                    if (target.classList.contains('stock-awal-input')) {
-                        inputValues.stockAwal[index] = value;
-                    } else if (target.classList.contains('produksi-input')) {
-                        inputValues.produksi[index] = value;
-                    } else if (target.classList.contains('surcip-input')) {
-                        inputValues.surcip[index] = value;
-                    } else if (target.classList.contains('sunter-input')) {
-                        inputValues.sunter[index] = value;
-                    } else if (target.classList.contains('kiic-input')) {
-                        inputValues.kiic[index] = value;
-                    }
-                    
-                    calculateGap(index);
-                    debounceSave();
-                    calculateTableTotals(); // Hitung ulang total tabel
-                }
-            });
-            
-            // Event listener untuk input ACT/BOX di tabel kedua
-            document.querySelector('#secondTableContainer').addEventListener('input', function(e) {
-                const target = e.target;
-                if (target.matches('.act-box-input')) {
-                    const index = target.getAttribute('data-index');
-                    const value = target.value;
-                    inputValues.actBox[index] = value;
-                    
-                    // Hitung ACT QTY berdasarkan ACT/BOX * STDRT PACK
-                    calculateActQtyFromBox(index);
-                    debounceSave();
-                    calculateTableTotals(); // Hitung ulang total tabel
-                }
-            });
-            
-            // Terapkan validasi input
-            document.querySelectorAll('input[type="number"]').forEach(input => {
-                validateNumberInput(input);
-            });
-            
-            // Perbarui tampilan hasil
-            updateResultsDisplay();
-            
-            // Hitung total tabel
-            calculateTableTotals();
-        }
-        
-        // Setup event listeners
-        function setupEventListeners() {
-            // Event listener untuk tombol masuk
-            enterButton.addEventListener('click', function() {
-                coverScreen.classList.add('hidden');
-                setTimeout(function() {
-                    mainApp.style.display = 'block';
-                    
-                    // Muat data setelah aplikasi dibuka
-                    loadDataFromLocalStorage();
-                    
-                    // Fokus ke input pertama setelah masuk
-                    setTimeout(() => {
-                        const firstInput = document.querySelector('input');
-                        if (firstInput) firstInput.focus();
-                    }, 300);
-                }, 800);
-            });
-            
-            // Event listeners untuk tombol
-            nextButton.addEventListener('click', handleNextButtonClick);
-            prevButton.addEventListener('click', showMainTable);
-            
-            // Event listener untuk toggle mode
-            modeToggle.addEventListener('change', function() {
-                // Efek meredup saat beralih mode
-                container.style.opacity = '0.7';
-                
-                setTimeout(() => {
-                    isNightMode = this.checked;
-                    document.body.classList.toggle('night-mode', isNightMode);
-                    pageTitle.textContent = isNightMode ? 'STOCK PRODUKSI NIGHT' : 'STOCK PRODUKSI DAY';
-                    pageTitle.innerHTML = isNightMode ? '<i class="fas fa-moon"></i> STOCK PRODUKSI NIGHT' : '<i class="fas fa-sun"></i> STOCK PRODUKSI DAY';
-                    
-                    // Simpan data sheet saat ini sebelum beralih
-                    saveCurrentSheetData();
-                    
-                    // Beralih antara sheet day dan night
-                    if (isNightMode) {
-                        currentSheet = 2;
-                        daySheet.classList.remove('active');
-                        nightSheet.classList.add('active');
-                    } else {
-                        currentSheet = 1;
-                        nightSheet.classList.remove('active');
-                        daySheet.classList.add('active');
-                    }
-                    
-                    // Muat data sheet
-                    loadSheetData();
-                    
-                    // Kembalikan opacity
-                    container.style.opacity = '1';
-                }, 300);
-            });
-            
-            // Event listener untuk help button
-            helpButton.addEventListener('click', function() {
-                helpModal.classList.add('visible');
-            });
-            
-            // Event listener untuk menutup help modal
-            helpModal.addEventListener('click', function(e) {
-                if (e.target === helpModal) {
-                    helpModal.classList.remove('visible');
-                }
-            });
-            
-            // Event listener untuk sebelum unload (peringatan jika ada perubahan belum disimpan)
-            window.addEventListener('beforeunload', function(e) {
-                // Simpan data terakhir sebelum meninggalkan halaman
-                saveDataToLocalStorage();
-                
-                // Cek jika ada perubahan yang belum disimpan
-                if (Object.keys(inputValues.stockAwal).length > 0 || 
-                    Object.keys(inputValues.produksi).length > 0) {
-                    e.preventDefault();
-                    e.returnValue = 'Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
-                    return 'Anda memiliki perubahan yang belum disimpan. Yakin ingin meninggalkan halaman?';
-                }
-            });
-            
-            // Event listener untuk visibilitas halaman (tab aktif/tidak aktif)
-            document.addEventListener('visibilitychange', function() {
-                if (document.visibilityState === 'visible') {
-                    // Tab menjadi aktif, periksa sinkronisasi data
-                    checkDataSynchronization();
-                } else {
-                    // Tab menjadi tidak aktif, simpan data terakhir
-                    saveDataToLocalStorage();
-                }
-            });
-            
-            // Event listener untuk online/offline status
-            window.addEventListener('online', function() {
-                showToast('Koneksi internet tersedia', false);
-                checkDataSynchronization();
-            });
-            
-            window.addEventListener('offline', function() {
-                showToast('Anda sedang offline', true);
-            });
-        }
-        
-        // Setup auto-save dengan debouncing
-        function setupAutoSave() {
-            // Hapus interval sebelumnya jika ada
-            if (autoSaveInterval) {
-                clearInterval(autoSaveInterval);
-            }
-            
-            // Set interval untuk auto-save setiap 30 detik
-            autoSaveInterval = setInterval(() => {
-                if (saveDataToLocalStorage()) {
-                    showStatusIndicator('Data tersimpan otomatis', 2000);
-                }
-            }, 30000);
-        }
-        
-        // Debouncing untuk save
-        function debounceSave() {
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                if (saveDataToLocalStorage()) {
-                    showStatusIndicator('Data tersimpan', 1500);
-                }
-            }, 2000);
-        }
-        
-        // Fungsi untuk menyimpan data sheet saat ini
-        function saveCurrentSheetData() {
-            sheetsData[currentSheet] = {
-                inputValues: JSON.parse(JSON.stringify(inputValues)),
-                actQtyValues: JSON.parse(JSON.stringify(actQtyValues)),
-                gapValues: JSON.parse(JSON.stringify(gapValues))
-            };
-        }
-        
-        // Fungsi untuk memuat data sheet
-        function loadSheetData() {
-            const sheetData = sheetsData[currentSheet];
-            
-            if (sheetData) {
-                // Salin data dari sheetData ke variabel state
-                if (sheetData.inputValues) {
-                    for (let key in sheetData.inputValues) {
-                        inputValues[key] = {...sheetData.inputValues[key]};
-                    }
-                }
-                
-                if (sheetData.actQtyValues) {
-                    for (let key in sheetData.actQtyValues) {
-                        actQtyValues[key] = sheetData.actQtyValues[key];
-                    }
-                }
-                
-                if (sheetData.gapValues) {
-                    for (let key in sheetData.gapValues) {
-                        gapValues[key] = sheetData.gapValues[key];
-                    }
-                }
-            } else {
-                // Jika sheetData tidak ada, inisialisasi dengan objek kosong
-                sheetsData[currentSheet] = {};
-            }
-            
-            // Perbarui nilai input di tabel
-            updateInputValues();
-            
-            // Perbarui tampilan hasil
-            updateResultsDisplay();
-            
-            // Hitung ulang total tabel
-            calculateTableTotals();
-        }
-        
-        // Fungsi untuk memperbarui nilai input di tabel
-        function updateInputValues() {
-            // Untuk setiap input di tabel, set nilai dari inputValues
-            document.querySelectorAll('.stock-awal-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.stockAwal[index] || '';
-            });
-            
-            document.querySelectorAll('.produksi-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.produksi[index] || '';
-            });
-            
-            document.querySelectorAll('.surcip-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.surcip[index] || '';
-            });
-            
-            document.querySelectorAll('.sunter-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.sunter[index] || '';
-            });
-            
-            document.querySelectorAll('.kiic-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.kiic[index] || '';
-            });
-            
-            document.querySelectorAll('.act-box-input').forEach(input => {
-                const index = input.getAttribute('data-index');
-                input.value = inputValues.actBox[index] || '';
-            });
-        }
-        
-        // Fungsi untuk mereset data
-        function resetData() {
-            // Reset inputValues untuk sheet saat ini
-            for (let key in inputValues) {
-                inputValues[key] = {};
-            }
-            
-            // Reset actQtyValues dan gapValues
-            for (let key in actQtyValues) {
-                delete actQtyValues[key];
-            }
-            
-            for (let key in gapValues) {
-                delete gapValues[key];
-            }
-            
-            // Perbarui tampilan
-            updateInputValues();
-            updateResultsDisplay();
-            calculateTableTotals();
-            
-            // Hapus data dari localStorage
-            localStorage.removeItem('productionData');
-            lastSavedEl.textContent = 'Terakhir disimpan: -';
-        }
-        
-        // Fungsi untuk menghitung GAP
-        function calculateGap(index) {
-            // Ambil nilai input
-            const stockAwal = parseFloat(inputValues.stockAwal[index]) || 0;
-            const produksi = parseFloat(inputValues.produksi[index]) || 0;
-            const surcip = parseFloat(inputValues.surcip[index]) || 0;
-            const sunter = parseFloat(inputValues.sunter[index]) || 0;
-            const kiic = parseFloat(inputValues.kiic[index]) || 0;
-            
-            // Hitung ACT QTY: Stock Awal + Produksi - (Surcip + Sunter + KIIC)
-            const actQty = stockAwal + produksi - (surcip + sunter + kiic);
-            actQtyValues[index] = actQty;
-            
-            // Hitung GAP: ACT QTY - (ACT QTY dari tabel kedua, jika ada)
-            // Jika ada input ACT/BOX, maka kita hitung ACT QTY dari tabel kedua
-            let actQtyFromBox = 0;
-            if (inputValues.actBox[index] !== undefined) {
-                const actBox = parseFloat(inputValues.actBox[index]) || 0;
-                actQtyFromBox = actBox * stdrtPack[index];
-            }
-            
-            const gap = actQty - actQtyFromBox;
-            gapValues[index] = gap;
-            
-            // Perbarui tampilan
-            document.getElementById(`act-qty-${index}`).textContent = actQty.toLocaleString('id-ID');
-            document.getElementById(`gap-${index}`).textContent = gap.toLocaleString('id-ID');
-            document.getElementById(`act-qty-2-${index}`).textContent = actQty.toLocaleString('id-ID');
-        }
-        
-        // Fungsi untuk menghitung ACT QTY dari input ACT/BOX
-        function calculateActQtyFromBox(index) {
-            const actBox = parseFloat(inputValues.actBox[index]) || 0;
-            const actQty = actBox * stdrtPack[index];
-            actQtyValues[index] = actQty;
-            
-            // Hitung GAP: ACT QTY dari tabel utama - ACT QTY dari tabel kedua
-            // Kita perlu mengambil nilai ACT QTY dari tabel utama
-            const stockAwal = parseFloat(inputValues.stockAwal[index]) || 0;
-            const produksi = parseFloat(inputValues.produksi[index]) || 0;
-            const surcip = parseFloat(inputValues.surcip[index]) || 0;
-            const sunter = parseFloat(inputValues.sunter[index]) || 0;
-            const kiic = parseFloat(inputValues.kiic[index]) || 0;
-            
-            const actQtyMain = stockAwal + produksi - (surcip + sunter + kiic);
-            const gap = actQtyMain - actQty;
-            gapValues[index] = gap;
-            
-            // Perbarui tampilan
-            document.getElementById(`act-qty-${index}`).textContent = actQtyMain.toLocaleString('id-ID');
-            document.getElementById(`gap-${index}`).textContent = gap.toLocaleString('id-ID');
-            document.getElementById(`act-qty-2-${index}`).textContent = actQty.toLocaleString('id-ID');
-        }
-        
-        // Fungsi untuk memperbarui tampilan hasil
-        function updateResultsDisplay() {
-            // Perbarui ACT QTY dan GAP untuk setiap baris
-            for (let i = 0; i < kodeInject.length; i++) {
-                document.getElementById(`act-qty-${i}`).textContent = actQtyValues[i] !== undefined ? actQtyValues[i].toLocaleString('id-ID') : '-';
-                document.getElementById(`gap-${i}`).textContent = gapValues[i] !== undefined ? gapValues[i].toLocaleString('id-ID') : '-';
-                document.getElementById(`act-qty-2-${i}`).textContent = actQtyValues[i] !== undefined ? actQtyValues[i].toLocaleString('id-ID') : '-';
-            }
-        }
-        
-        // Fungsi untuk menghitung total tabel
-        function calculateTableTotals() {
-            let totalStockAwal = 0;
-            let totalProduksi = 0;
-            let totalSurcip = 0;
-            let totalSunter = 0;
-            let totalKiic = 0;
-            let totalActQty = 0;
-            let totalGap = 0;
-            
-            for (let i = 0; i < kodeInject.length; i++) {
-                totalStockAwal += parseFloat(inputValues.stockAwal[i]) || 0;
-                totalProduksi += parseFloat(inputValues.produksi[i]) || 0;
-                totalSurcip += parseFloat(inputValues.surcip[i]) || 0;
-                totalSunter += parseFloat(inputValues.sunter[i]) || 0;
-                totalKiic += parseFloat(inputValues.kiic[i]) || 0;
-                totalActQty += parseFloat(actQtyValues[i]) || 0;
-                totalGap += parseFloat(gapValues[i]) || 0;
-            }
-            
-            // Update footer tabel
-            totalStockAwalEl.textContent = totalStockAwal.toLocaleString('id-ID');
-            totalProduksiEl.textContent = totalProduksi.toLocaleString('id-ID');
-            totalSurcipEl.textContent = totalSurcip.toLocaleString('id-ID');
-            totalSunterEl.textContent = totalSunter.toLocaleString('id-ID');
-            totalKiicEl.textContent = totalKiic.toLocaleString('id-ID');
-            totalActQtyTableEl.textContent = totalActQty.toLocaleString('id-ID');
-            totalGapTableEl.textContent = totalGap.toLocaleString('id-ID');
-        }
-        
-        // Fungsi untuk validasi input angka
-        function validateNumberInput(input) {
-            input.addEventListener('input', function() {
-                if (this.value < 0) {
-                    this.value = 0;
-                }
-            });
-        }
-        
-        // Fungsi untuk menampilkan toast notification
-        function showToast(message, isError = false) {
-            toast.innerHTML = `${isError ? '<i class="fas fa-exclamation-circle"></i>' : '<i class="fas fa-check-circle"></i>'} ${message}`;
-            toast.className = isError ? 'toast error' : 'toast';
-            toast.classList.add('visible');
-            
-            setTimeout(() => {
-                toast.classList.remove('visible');
-            }, 3000);
-        }
-        
-        // Fungsi untuk menampilkan status indicator
-        function showStatusIndicator(message, duration = 1500) {
-            statusIndicator.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
-            statusIndicator.classList.add('visible');
-            
-            setTimeout(() => {
-                statusIndicator.classList.remove('visible');
-            }, duration);
-        }
-        
-        // Fungsi untuk menangani klik tombol next
-        function handleNextButtonClick() {
-            mainTableContainer.classList.add('hidden');
-            secondTableContainer.classList.remove('hidden');
-            prevButton.classList.remove('hidden');
-            nextButton.classList.add('hidden');
+                currentSheet = isNightMode ? 2 : 1;
+                el.daySheet.classList.toggle('active', !isNightMode);
+                el.nightSheet.classList.toggle('active', isNightMode);
+                loadSheetData();
+                el.container.classList.remove('fade-effect');
+            }, 300);
+        });
+    }
+
+    function showSecondTable() {
+        if (!el.container || !el.mainTableContainer || !el.secondTableContainer || !el.prevButton || !el.nextButton) return;
+        el.container.classList.add('door-slide');
+        setTimeout(() => {
+            el.mainTableContainer.classList.add('hidden');
+            el.secondTableContainer.classList.remove('hidden');
+            el.prevButton.classList.remove('hidden');
+            el.nextButton.textContent = 'Hitung & Kembali';
+            el.nextButton.className = 'nav-button calculate-button';
             currentView = 'second';
-        }
-        
-        // Fungsi untuk menampilkan tabel utama
-        function showMainTable() {
-            secondTableContainer.classList.add('hidden');
-            mainTableContainer.classList.remove('hidden');
-            prevButton.classList.add('hidden');
-            nextButton.classList.remove('hidden');
+            el.container.classList.remove('door-slide');
+        }, 400);
+    }
+
+    function showMainTable() {
+        if (!el.container || !el.secondTableContainer || !el.mainTableContainer || !el.prevButton || !el.nextButton) return;
+        el.container.classList.add('door-slide');
+        setTimeout(() => {
+            el.secondTableContainer.classList.add('hidden');
+            el.mainTableContainer.classList.remove('hidden');
+            el.prevButton.classList.add('hidden');
+            el.nextButton.textContent = 'Selanjutnya';
+            el.nextButton.className = 'nav-button next-button';
+            updateMainTableActQty();
             currentView = 'main';
+            el.container.classList.remove('door-slide');
+        }, 400);
+    }
+
+    function calculateActQty(i) {
+        const actBox = parseInt(inputValues.actBox[i] || 0);
+        const actQty = stdrtPack[i] * actBox;
+        actQtyValues[i] = actQty;
+        const cell2 = document.getElementById(`act-qty-2-${i}`);
+        if (cell2) {
+            cell2.textContent = actQty;
+            cell2.classList.add('positive');
         }
-        
-        // Setup navigasi keyboard (Tab) untuk input
-        function setupInputNavigation() {
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Tab') {
-                    // Biarkan perilaku default
-                } else if (e.key === 'Enter') {
-                    // Simpan data saat tekan Enter
-                    debounceSave();
-                    showStatusIndicator('Data tersimpan', 1000);
+        calculateGap(i);
+    }
+
+    function calculateGap(i) {
+        const sa = parseInt(inputValues.stockAwal[i] || 0);
+        const p = parseInt(inputValues.produksi[i] || 0);
+        const s = parseInt(inputValues.surcip[i] || 0);
+        const su = parseInt(inputValues.sunter[i] || 0);
+        const k = parseInt(inputValues.kiic[i] || 0);
+        const aq = actQtyValues[i] || 0;
+        const gap = aq - (sa + p - s - su - k);
+        gapValues[i] = gap;
+        const cell = document.getElementById(`gap-${i}`);
+        if (cell) {
+            cell.textContent = gap;
+            cell.classList.remove('positive', 'negative', 'zero');
+            if (gap > 0) cell.classList.add('positive');
+            else if (gap < 0) cell.classList.add('negative');
+            else cell.classList.add('zero');
+        }
+    }
+
+    function calculateAllActQty() {
+        for (let i = 0; i < N; i++) calculateActQty(i);
+    }
+
+    function updateMainTableActQty() {
+        for (let i = 0; i < N; i++) {
+            const cell = document.getElementById(`act-qty-${i}`);
+            if (cell) {
+                if (actQtyValues[i] !== undefined) {
+                    cell.textContent = actQtyValues[i];
+                    cell.classList.add('positive');
+                } else {
+                    cell.textContent = '-';
+                    cell.classList.remove('positive');
+                }
+            }
+        }
+        calculateAllGaps();
+    }
+
+    function calculateAllGaps() {
+        for (let i = 0; i < N; i++) calculateGap(i);
+    }
+
+    function updateResultsDisplay() {
+        for (let i = 0; i < N; i++) {
+            const aqCell = document.getElementById(`act-qty-${i}`);
+            if (aqCell && actQtyValues[i] !== undefined) {
+                aqCell.textContent = actQtyValues[i];
+                aqCell.classList.add('positive');
+            }
+            const gCell = document.getElementById(`gap-${i}`);
+            if (gCell && gapValues[i] !== undefined) {
+                gCell.textContent = gapValues[i];
+                gCell.classList.remove('positive', 'negative', 'zero');
+                if (gapValues[i] > 0) gCell.classList.add('positive');
+                else if (gapValues[i] < 0) gCell.classList.add('negative');
+                else gCell.classList.add('zero');
+            }
+        }
+    }
+
+    function saveDataToLocalStorage() {
+        try {
+            saveCurrentSheetData();
+            const data = { sheetsData, lastSaved: new Date().toISOString() };
+            localStorage.setItem('productionData', JSON.stringify(data));
+            return true;
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal simpan: Storage penuh?', true);
+            return false;
+        }
+    }
+
+    function loadDataFromLocalStorage() {
+        try {
+            const sd = localStorage.getItem('productionData');
+            if (sd) {
+                const pd = JSON.parse(sd);
+                if (pd.sheetsData) Object.assign(sheetsData, pd.sheetsData);
+                loadSheetData();
+                showToast('Data dimuat');
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('Gagal muat data', true);
+        }
+    }
+
+    function saveCurrentSheetData() {
+        sheetsData[currentSheet] = {
+            inputValues: { ...inputValues },
+            actQtyValues: { ...actQtyValues },
+            gapValues: { ...gapValues }
+        };
+    }
+
+    function loadSheetData() {
+        if (sheetsData[currentSheet]) {
+            const sh = sheetsData[currentSheet];
+            Object.assign(inputValues, sh.inputValues);
+            Object.assign(actQtyValues, sh.actQtyValues);
+            Object.assign(gapValues, sh.gapValues);
+            initializeTables();
+        } else {
+            resetData();
+        }
+    }
+
+    function resetData() {
+        for (let k in inputValues) inputValues[k] = {};
+        for (let k in actQtyValues) delete actQtyValues[k];
+        for (let k in gapValues) delete gapValues[k];
+        initializeTables();
+    }
+
+    function setupAutoSave() {
+        if (autoSaveInterval) clearInterval(autoSaveInterval);
+        autoSaveInterval = setInterval(() => {
+            saveDataToLocalStorage() && showStatusIndicator('Data tersimpan otomatis', 2000);
+        }, 30000);
+    }
+
+    function debounceSave() {
+        clearTimeout(saveTimeout);
+        saveTimeout = setTimeout(() => {
+            saveDataToLocalStorage() && showStatusIndicator('Data tersimpan', 1500);
+        }, 2000);
+    }
+
+    function showStatusIndicator(msg, d = 2000) {
+        if (!el.statusIndicator) return;
+        el.statusIndicator.textContent = msg;
+        el.statusIndicator.style.display = 'block';
+        setTimeout(() => el.statusIndicator.style.display = 'none', d);
+    }
+
+    function showToast(msg, isErr = false) {
+        if (!el.toast) return;
+        el.toast.textContent = msg;
+        el.toast.className = isErr ? 'toast error' : 'toast';
+        el.toast.style.display = 'block';
+        setTimeout(() => el.toast.style.display = 'none', 3000);
+    }
+
+    function showLoadingIndicator() {
+        if (!el.loadingIndicator) return;
+        el.loadingIndicator.style.display = 'block';
+    }
+
+    function hideLoadingIndicator() {
+        if (!el.loadingIndicator) return;
+        el.loadingIndicator.style.display = 'none';
+    }
+
+    function showModal() {
+        if (!el.confirmationModal) return;
+        el.confirmationModal.classList.add('active');
+    }
+
+    function closeModal() {
+        if (!el.confirmationModal) return;
+        el.confirmationModal.classList.remove('active');
+    }
+
+    function confirmReset() {
+        const msgEl = document.getElementById('modalMessage');
+        if (msgEl) msgEl.textContent = "Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.";
+        showModal();
+    }
+
+    function performReset() {
+        resetData();
+        closeModal();
+        showToast('Data direset');
+    }
+
+    function setupInputNavigation() {
+        const inputs = [...document.querySelectorAll('input[type="number"]')];
+        inputs.forEach((inp, idx) => {
+            inp.addEventListener('keydown', e => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const ni = (idx + 1) % inputs.length;
+                    inputs[ni].focus();
                 }
             });
+            inp.addEventListener('input', validateNumberInput);
+        });
+    }
+
+    function validateNumberInput(e) {
+        e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        const nv = parseInt(e.target.value);
+        if (isNaN(nv) || nv < 0) e.target.value = '';
+        if (nv > 999999) e.target.value = '999999';
+    }
+
+    function handleKeyboard(e) {
+        if (e.ctrlKey && e.key === 's') {
+            e.preventDefault();
+            saveDataToLocalStorage();
+            showToast('Saved with Ctrl+S');
         }
-        
-        // Fungsi untuk memperbarui tanggal
-        function updateDate() {
-            const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            currentDate.textContent = now.toLocaleDateString('id-ID', options);
-        }
-        
-        // Fungsi untuk menyimpan data ke Excel
-        function saveToExcel() {
-            // Simpan data sheet saat ini terlebih dahulu
-            saveCurrentSheetData();
-            
-            // Tampilkan loading
-            loadingIndicator.classList.add('visible');
-            
-            // Buat workbook
+    }
+
+    function updateProgressBar() {
+        if (!el.progressBar) return;
+        const wh = window.innerHeight;
+        const dh = document.documentElement.scrollHeight;
+        const st = window.pageYOffset || document.documentElement.scrollTop;
+        const sp = (st / (dh - wh)) * 100;
+        el.progressBar.style.width = sp + '%';
+    }
+
+    async function saveToExcel() {
+        showLoadingIndicator();
+        try {
+            if (!checkXLSXAvailability()) {
+                throw new Error('Library Excel (XLSX) tidak tersedia. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
+            }
             const wb = XLSX.utils.book_new();
-            
-            // Data untuk sheet Day
-            const dayData = prepareSheetData(1);
-            const wsDay = XLSX.utils.aoa_to_sheet(dayData);
-            XLSX.utils.book_append_sheet(wb, wsDay, 'Day');
-            
-            // Data untuk sheet Night
-            const nightData = prepareSheetData(2);
-            const wsNight = XLSX.utils.aoa_to_sheet(nightData);
-            XLSX.utils.book_append_sheet(wb, wsNight, 'Night');
-            
-            // Simpan file
-            XLSX.writeFile(wb, `Laporan_Produksi_${new Date().toISOString().split('T')[0]}.xlsx`);
-            
-            // Sembunyikan loading
-            setTimeout(() => {
-                loadingIndicator.classList.remove('visible');
-                showToast('Berhasil disimpan ke Excel', false);
-            }, 1000);
-        }
-        
-        // Fungsi untuk menyiapkan data untuk sheet Excel
-        function prepareSheetData(sheetNumber) {
-            const sheetData = sheetsData[sheetNumber];
-            const data = [];
-            
-            // Header
-            data.push(['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']);
-            
-            // Data rows
-            for (let i = 0; i < kodeInject.length; i++) {
-                data.push([
+            const data1 = [['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']];
+            for (let i = 0; i < N; i++) {
+                data1.push([
                     kodeInject[i],
-                    sheetData.inputValues.stockAwal[i] || 0,
-                    sheetData.inputValues.produksi[i] || 0,
-                    sheetData.inputValues.surcip[i] || 0,
-                    sheetData.inputValues.sunter[i] || 0,
-                    sheetData.inputValues.kiic[i] || 0,
-                    sheetData.actQtyValues[i] || 0,
-                    sheetData.gapValues[i] || 0
+                    inputValues.stockAwal[i] || '',
+                    inputValues.produksi[i] || '',
+                    inputValues.surcip[i] || '',
+                    inputValues.sunter[i] || '',
+                    inputValues.kiic[i] || '',
+                    actQtyValues[i] || '',
+                    gapValues[i] || ''
                 ]);
             }
-            
-            // Total row
-            let totalStockAwal = 0;
-            let totalProduksi = 0;
-            let totalSurcip = 0;
-            let totalSunter = 0;
-            let totalKiic = 0;
-            let totalActQty = 0;
-            let totalGap = 0;
-            
-            for (let i = 0; i < kodeInject.length; i++) {
-                totalStockAwal += parseFloat(sheetData.inputValues.stockAwal[i]) || 0;
-                totalProduksi += parseFloat(sheetData.inputValues.produksi[i]) || 0;
-                totalSurcip += parseFloat(sheetData.inputValues.surcip[i]) || 0;
-                totalSunter += parseFloat(sheetData.inputValues.sunter[i]) || 0;
-                totalKiic += parseFloat(sheetData.inputValues.kiic[i]) || 0;
-                totalActQty += parseFloat(sheetData.actQtyValues[i]) || 0;
-                totalGap += parseFloat(sheetData.gapValues[i]) || 0;
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data1), 'Production');
+            const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
+            const msg = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan file Excel yang telah diunduh._`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            showToast('Excel disimpan dan siap dibagikan ke WhatsApp!');
+        } catch (e) {
+            console.error('Excel Error:', e);
+            showToast('Gagal menyimpan Excel: ' + (e.message || 'Terjadi kesalahan.'), true);
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
+
+    async function shareToWhatsApp() {
+        showLoadingIndicator();
+        try {
+            let st = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A _Otomatis generated_`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(st)}`, '_blank');
+            showToast('Berhasil membagikan ke WhatsApp!');
+        } catch (e) {
+            console.error('WhatsApp Error:', e);
+            showToast('Gagal share ke WhatsApp: ' + (e.message || 'Terjadi kesalahan.'), true);
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
+
+    async function shareAsJpg() {
+        showLoadingIndicator();
+        try {
+            if (typeof html2canvas !== 'function') {
+                throw new Error('html2canvas tidak tersedia. Pastikan library dimuat dengan benar.');
             }
-            
-            data.push([
-                'TOTAL',
-                totalStockAwal,
-                totalProduksi,
-                totalSurcip,
-                totalSunter,
-                totalKiic,
-                totalActQty,
-                totalGap
-            ]);
-            
-            return data;
-        }
-        
-        // Fungsi untuk berbagi data via WhatsApp
-        function shareToWhatsApp() {
-            // Simpan data sheet saat ini
-            saveCurrentSheetData();
-            
-            // Siapkan pesan
-            let message = `Laporan Produksi ${isNightMode ? 'Night' : 'Day'} - ${new Date().toLocaleDateString('id-ID')}\n\n`;
-            message += `Detail: ${window.location.href}`;
-            
-            // Encode message untuk URL
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        }
-        
-        // Fungsi untuk berbagi link via WhatsApp
-        function shareLinkToWhatsApp() {
-            // Simpan data sheet saat ini
-            saveCurrentSheetData();
-            
-            // Siapkan pesan
-            let message = `Laporan Produksi ${isNightMode ? 'Night' : 'Day'} - ${new Date().toLocaleDateString('id-ID')}\n\n`;
-            message += `Saya ingin berbagi laporan produksi dengan Anda:\n`;
-            message += `${window.location.href}`;
-            
-            // Encode message untuk URL
-            const encodedMessage = encodeURIComponent(message);
-            window.open(`https://wa.me/?text=${encodedMessage}`, '_blank');
-        }
-        
-        // Fungsi untuk berbagi sebagai gambar
-        function shareAsJpg() {
-            // Simpan data sheet saat ini
-            saveCurrentSheetData();
-            
-            // Tampilkan loading
-            loadingIndicator.classList.add('visible');
-            
-            // Gunakan html2canvas untuk menangkap konten
-            html2canvas(document.querySelector('.container')).then(canvas => {
-                // Konversi canvas to data URL
-                const imgData = canvas.toDataURL('image/jpeg');
-                
-                // Buat link unduh
-                const link = document.createElement('a');
-                link.href = imgData;
-                link.download = `Laporan_Produksi_${new Date().toISOString().split('T')[0]}.jpg`;
-                link.click();
-                
-                // Sembunyikan loading
-                loadingIndicator.classList.remove('visible');
-                showToast('Berhasil disimpan sebagai gambar', false);
-            });
-        }
-        
-        // Fungsi untuk menampilkan modal upload
-        function showUploadModal() {
-            uploadModal.classList.add('visible');
-        }
-        
-        // Fungsi untuk menyembunyikan modal upload
-        function hideUploadModal() {
-            uploadModal.classList.remove('visible');
-        }
-        
-        // Fungsi untuk memproses file Excel
-        function processExcelFile() {
-            const file = fileInput.files[0];
-            if (!file) {
-                showToast('Pilih file Excel terlebih dahulu', true);
-                return;
+            const cont = el.mainTableContainer;
+            if (!cont) {
+                throw new Error('Tabel utama tidak ditemukan untuk konversi ke JPG.');
             }
-            
+            if (currentView !== 'main') {
+                showMainTable();
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            const clone = cont.cloneNode(true);
+            clone.style.position = 'absolute';
+            clone.style.left = '-9999px';
+            clone.style.overflow = 'visible';
+            clone.style.width = cont.offsetWidth + 'px';
+            clone.style.boxShadow = 'none';
+            clone.style.transform = 'none';
+            document.body.appendChild(clone);
+            let canvas;
+            try {
+                canvas = await html2canvas(clone, {
+                    backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: false,
+                    foreignObjectRendering: true,
+                    windowWidth: cont.offsetWidth,
+                    windowHeight: cont.offsetHeight
+                });
+            } catch (e) {
+                console.warn('Initial html2canvas failed, retrying with fallback options:', e);
+                canvas = await html2canvas(clone, {
+                    backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
+                    scale: 1,
+                    useCORS: true,
+                    logging: false,
+                    allowTaint: false,
+                    foreignObjectRendering: false,
+                    windowWidth: cont.offsetWidth,
+                    windowHeight: cont.offsetHeight
+                });
+            }
+            document.body.removeChild(clone);
+            const img = canvas.toDataURL('image/jpeg', 0.95);
+            const lnk = document.createElement('a');
+            const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+            lnk.download = fileName;
+            lnk.href = img;
+            lnk.click();
+            const msg = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan gambar JPG yang telah diunduh._`;
+            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+            showToast('JPG disimpan dan siap dibagikan ke WhatsApp!');
+        } catch (e) {
+            console.error('html2canvas Error:', e);
+            showToast('Gagal membuat JPG: ' + (e.message || 'Operasi tidak didukung oleh browser.'), true);
+        } finally {
+            hideLoadingIndicator();
+        }
+    }
+
+    async function importExcel(files) {
+        if (!files || files.length === 0) {
+            showToast('Tidak ada file yang dipilih.', true);
+            return;
+        }
+        showLoadingIndicator();
+        try {
+            if (!checkXLSXAvailability()) {
+                throw new Error('Library Excel (XLSX) tidak tersedia. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
+            }
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = async e => {
                 try {
                     const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    
-                    // Ambil sheet pertama
-                    const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                    
-                    // Konversi ke JSON
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
-                    
-                    // Proses data
-                    processExcelData(jsonData);
-                    
-                    hideUploadModal();
-                    showToast('Data berhasil diupload dari Excel', false);
-                } catch (error) {
-                    console.error('Error processing Excel file:', error);
-                    showToast('Gagal memproses file Excel', true);
+                    let wb;
+                    try {
+                        wb = XLSX.read(data, { type: 'array' });
+                    } catch (e) {
+                        throw new Error('File Excel tidak valid atau rusak.');
+                    }
+                    if (!wb.SheetNames || wb.SheetNames.length < 1) {
+                        throw new Error('File Excel tidak memiliki sheet yang valid.');
+                    }
+                    const ws = wb.Sheets[wb.SheetNames[0]];
+                    const ws2 = wb.SheetNames[1] ? wb.Sheets[wb.SheetNames[1]] : null;
+                    const json = ws ? XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) : [];
+                    const json2 = ws2 ? XLSX.utils.sheet_to_json(ws2, { header: 1, defval: '' }) : [];
+                    const expectedHeaders = ['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
+                    const expectedHeaders2 = ['KODE INJECT', 'STDRT PACK', 'ACT /BOX', 'ACT QTY'];
+                    const headers = json[0] && Array.isArray(json[0]) && json[0].length > 0 ? json[0].map(h => h.toString().trim()) : [];
+                    if (!headers.length) {
+                        throw new Error('Sheet pertama tidak memiliki header yang valid.');
+                    }
+                    const headerMap = {};
+                    headers.forEach((header, index) => {
+                        headerMap[header.toUpperCase()] = index;
+                    });
+                    const missingHeaders = expectedHeaders.filter(h => !(h.toUpperCase() in headerMap));
+                    if (missingHeaders.length > 0) {
+                        throw new Error(`Header tidak ditemukan di sheet pertama: ${missingHeaders.join(', ')}.`);
+                    }
+                    let headerMap2 = {};
+                    let headers2 = [];
+                    if (ws2 && json2[0] && Array.isArray(json2[0]) && json2[0].length > 0) {
+                        headers2 = json2[0].map(h => h.toString().trim());
+                        headers2.forEach((header, index) => {
+                            headerMap2[header.toUpperCase()] = index;
+                        });
+                        const missingHeaders2 = expectedHeaders2.filter(h => !(h.toUpperCase() in headerMap2));
+                        if (missingHeaders2.length > 0) {
+                            throw new Error(`Header tidak ditemukan di sheet kedua: ${missingHeaders2.join(', ')}.`);
+                        }
+                    } else if (ws2) {
+                        throw new Error('Sheet kedua tidak memiliki header yang valid.');
+                    }
+                    inputValues = {
+                        stockAwal: {},
+                        produksi: {},
+                        surcip: {},
+                        sunter: {},
+                        kiic: {},
+                        actBox: {}
+                    };
+                    actQtyValues = {};
+                    gapValues = {};
+                    let validRows = 0;
+                    for (let i = 1; i < json.length; i++) {
+                        const row = json[i];
+                        if (!row || !row[headerMap['KODE INJECT']] || row[headerMap['KODE INJECT']] === '') continue;
+                        const kode = row[headerMap['KODE INJECT']].toString().trim();
+                        const idx = kodeInject.indexOf(kode);
+                        if (idx === -1) continue;
+                        inputValues.stockAwal[idx] = row[headerMap['STOCK AWAL']] !== undefined && row[headerMap['STOCK AWAL']] !== '' ? Math.round(Number(row[headerMap['STOCK AWAL']])).toString() : '';
+                        inputValues.produksi[idx] = row[headerMap['PRODUKSI']] !== undefined && row[headerMap['PRODUKSI']] !== '' ? Math.round(Number(row[headerMap['PRODUKSI']])).toString() : '';
+                        inputValues.surcip[idx] = row[headerMap['SURCIP']] !== undefined && row[headerMap['SURCIP']] !== '' ? Math.round(Number(row[headerMap['SURCIP']])).toString() : '';
+                        inputValues.sunter[idx] = row[headerMap['SUNTER']] !== undefined && row[headerMap['SUNTER']] !== '' ? Math.round(Number(row[headerMap['SUNTER']])).toString() : '';
+                        inputValues.kiic[idx] = row[headerMap['KIIC']] !== undefined && row[headerMap['KIIC']] !== '' ? Math.round(Number(row[headerMap['KIIC']])).toString() : '';
+                        actQtyValues[idx] = row[headerMap['ACT QTY']] !== undefined && row[headerMap['ACT QTY']] !== '' ? Math.round(Number(row[headerMap['ACT QTY']])) : '';
+                        gapValues[idx] = row[headerMap['GAP']] !== undefined && row[headerMap['GAP']] !== '' ? Math.round(Number(row[headerMap['GAP']])) : '';
+                        validRows++;
+                    }
+                    if (ws2) {
+                        for (let i = 1; i < json2.length; i++) {
+                            const row = json2[i];
+                            if (!row || !row[headerMap2['KODE INJECT']] || row[headerMap2['KODE INJECT']] === '') continue;
+                            const kode = row[headerMap2['KODE INJECT']].toString().trim();
+                            const idx = kodeInject.indexOf(kode);
+                            if (idx === -1) continue;
+                            inputValues.actBox[idx] = row[headerMap2['ACT /BOX']] !== undefined && row[headerMap2['ACT /BOX']] !== '' ? Math.round(Number(row[headerMap2['ACT /BOX']])).toString() : '';
+                            if (row[headerMap2['ACT QTY']] !== undefined && row[headerMap2['ACT QTY']] !== '') {
+                                actQtyValues[idx] = Math.round(Number(row[headerMap2['ACT QTY']]));
+                            }
+                            validRows++;
+                        }
+                    }
+                    if (validRows === 0) {
+                        throw new Error('Tidak ada data valid yang ditemukan di file Excel.');
+                    }
+                    initializeTables();
+                    saveCurrentSheetData();
+                    showToast(`Import berhasil, ${validRows} baris diproses.`);
+                } catch (e) {
+                    console.error('Import Excel Error:', e);
+                    showToast(`Gagal import: ${e.message || 'Terjadi kesalahan saat memproses file Excel.'}`, true);
+                } finally {
+                    hideLoadingIndicator();
+                    el.fileInput.value = '';
                 }
             };
-            reader.readAsArrayBuffer(file);
+            reader.onerror = () => {
+                showToast('Gagal membaca file Excel.', true);
+                hideLoadingIndicator();
+            };
+            reader.readAsArrayBuffer(files[0]);
+        } catch (e) {
+            console.error('Import Excel Error:', e);
+            showToast('Gagal import: ' + (e.message || 'Terjadi kesalahan.'), true);
+            hideLoadingIndicator();
         }
-        
-        // Fungsi untuk memproses data Excel
-        function processExcelData(data) {
-            // Cari indeks kolom
-            const headers = data[0];
-            const kodeInjectIndex = headers.findIndex(h => h.toString().toLowerCase().includes('kode'));
-            const stockAwalIndex = headers.findIndex(h => h.toString().toLowerCase().includes('stock') && h.toString().toLowerCase().includes('awal'));
-            const produksiIndex = headers.findIndex(h => h.toString().toLowerCase().includes('produksi'));
-            const surcipIndex = headers.findIndex(h => h.toString().toLowerCase().includes('surcip'));
-            const sunterIndex = headers.findIndex(h => h.toString().toLowerCase().includes('sunter'));
-            const kiicIndex = headers.findIndex(h => h.toString().toLowerCase().includes('kiic'));
-            
-            // Loop melalui data
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (!row || row.length === 0) continue;
-                
-                const kode = row[kodeInjectIndex];
-                const stockAwal = row[stockAwalIndex];
-                const produksi = row[produksiIndex];
-                const surcip = row[surcipIndex];
-                const sunter = row[sunterIndex];
-                const kiic = row[kiicIndex];
-                
-                // Cari indeks kode inject yang sesuai
-                const index = kodeInject.findIndex(k => k === kode);
-                if (index !== -1) {
-                    // Isi nilai
-                    if (stockAwal !== undefined) inputValues.stockAwal[index] = stockAwal;
-                    if (produksi !== undefined) inputValues.produksi[index] = produksi;
-                    if (surcip !== undefined) inputValues.surcip[index] = surcip;
-                    if (sunter !== undefined) inputValues.sunter[index] = sunter;
-                    if (kiic !== undefined) inputValues.kiic[index] = kiic;
-                    
-                    // Hitung ulang
-                    calculateGap(index);
-                }
+    }
+
+    // Ensure initialization after all scripts are loaded
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => {
+            // Check if XLSX and html2canvas are loaded
+            if (typeof XLSX === 'undefined') {
+                console.error('XLSX library failed to load.');
+                showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
             }
-            
-            // Perbarui tampilan
-            updateInputValues();
-            updateResultsDisplay();
-            calculateTableTotals();
-            
-            // Simpan data
-            saveDataToLocalStorage();
-        }
-        
-        // Pada akhir script, tambahkan event listener untuk memuat data saat halaman dimuat
-        window.addEventListener('load', function() {
-            // Coba muat data dari localStorage
-            if (!loadDataFromLocalStorage()) {
-                // Jika tidak ada data, inisialisasi dengan data default
-                resetData();
+            if (typeof html2canvas === 'undefined') {
+                console.error('html2canvas library failed to load.');
+                showToast('Gagal memuat library untuk konversi JPG. Silakan muat ulang halaman.', true);
             }
-            
-            // Periksa sinkronisasi data
-            setTimeout(() => {
-                checkDataSynchronization();
-            }, 2000);
+            init();
         });
-    </script>
-</body>
-</html>
+    } else {
+        if (typeof XLSX === 'undefined') {
+            console.error('XLSX library failed to load.');
+            showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
+        }
+        if (typeof html2canvas === 'undefined') {
+            console.error('html2canvas library failed to load.');
+            showToast('Gagal memuat library untuk konversi JPG. Silakan muat ulang halaman.', true);
+        }
+        init();
+    }
+</script>
