@@ -316,6 +316,7 @@
             font-weight: 700;
             color: #2c3e50;
             margin-bottom: 8px;
+            transition: color 0.3s;
         }
         
         .summary-label {
@@ -399,31 +400,6 @@
             background: white;
         }
         
-        .table-scroll-indicator {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(102, 126, 234, 0.9);
-            color: white;
-            border-radius: 50%;
-            width: 35px;
-            height: 35px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            opacity: 0;
-            transition: opacity 0.3s;
-            pointer-events: none;
-            z-index: 5;
-            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
-        }
-        
-        .table-container:hover .table-scroll-indicator {
-            opacity: 1;
-        }
-        
         table {
             width: 100%;
             border-collapse: separate;
@@ -496,6 +472,22 @@
         .table-2 th, 
         .table-2 td {
             width: 25%; /* 100% / 4 kolom = 25% */
+        }
+        
+        /* Styling untuk footer tabel */
+        tfoot tr {
+            background: linear-gradient(to right, #f8f9fa, #e9ecef) !important;
+            font-weight: bold;
+        }
+        
+        tfoot td {
+            border-top: 2px solid #ddd;
+            font-weight: bold;
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+        }
+        
+        tfoot td:first-child {
+            text-align: center;
         }
         
         /* Tombol navigasi */
@@ -912,6 +904,17 @@
             color: #ecf0f1;
         }
         
+        /* Styling untuk footer tabel dalam night mode */
+        body.night-mode tfoot tr {
+            background: linear-gradient(to right, #34495e, #2c3e50) !important;
+        }
+        
+        body.night-mode tfoot td {
+            background: linear-gradient(to right, #34495e, #2c3e50);
+            border-top: 2px solid #5d6d7e;
+            color: #ecf0f1;
+        }
+        
         /* Responsive styles */
         @media (max-width: 480px) {
             .cover-screen {
@@ -1090,7 +1093,6 @@
 
             <!-- Tabel Utama -->
             <div class="table-container" id="mainTableContainer">
-                <div class="table-scroll-indicator"><i class="fas fa-arrow-right"></i></div>
                 <table id="mainTable">
                     <thead>
                         <tr>
@@ -1107,12 +1109,23 @@
                     <tbody>
                         <!-- Baris akan diisi oleh JavaScript -->
                     </tbody>
+                    <tfoot>
+                        <tr>
+                            <td class="kode-inject">TOTAL</td>
+                            <td id="total-stock-awal">0</td>
+                            <td id="total-produksi">0</td>
+                            <td id="total-surcip">0</td>
+                            <td id="total-sunter">0</td>
+                            <td id="total-kiic">0</td>
+                            <td id="total-act-qty-table">0</td>
+                            <td id="total-gap-table">0</td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
 
             <!-- Tabel Kedua (Awalnya Tersembunyi) -->
             <div class="table-container hidden" id="secondTableContainer">
-                <div class="table-scroll-indicator"><i class="fas fa-arrow-right"></i></div>
                 <table id="secondTable" class="table-2">
                     <thead>
                         <tr>
@@ -1239,6 +1252,15 @@
         const positiveGapsEl = document.getElementById('positiveGaps');
         const negativeGapsEl = document.getElementById('negativeGaps');
         
+        // Elemen untuk total tabel
+        const totalStockAwalEl = document.getElementById('total-stock-awal');
+        const totalProduksiEl = document.getElementById('total-produksi');
+        const totalSurcipEl = document.getElementById('total-surcip');
+        const totalSunterEl = document.getElementById('total-sunter');
+        const totalKiicEl = document.getElementById('total-kiic');
+        const totalActQtyTableEl = document.getElementById('total-act-qty-table');
+        const totalGapTableEl = document.getElementById('total-gap-table');
+        
         // Status aplikasi
         let currentView = 'main';
         let isNightMode = false;
@@ -1305,8 +1327,8 @@
                         <input type="number" class="kiic-input" data-index="${index}" value="${inputValues.kiic[index] || ''}" min="0">
                         <div class="input-hint">Tekan Tab untuk lanjut</div>
                     </td>
-                    <td class="act-qty-cell result-cell" id="act-qty-${index}">${actQtyValues[index] ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
-                    <td class="gap-cell result-cell" id="gap-${index}">${gapValues[index] ? gapValues[index].toLocaleString('id-ID') : '-'}</td>
+                    <td class="act-qty-cell result-cell" id="act-qty-${index}">${actQtyValues[index] !== undefined ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
+                    <td class="gap-cell result-cell" id="gap-${index}">${gapValues[index] !== undefined ? gapValues[index].toLocaleString('id-ID') : '-'}</td>
                 `;
                 
                 mainTableBody.appendChild(row);
@@ -1323,7 +1345,7 @@
                         <input type="number" class="act-box-input" data-index="${index}" value="${inputValues.actBox[index] || ''}" min="0">
                         <div class="input-hint">Tekan Tab untuk lanjut</div>
                     </td>
-                    <td class="act-qty-cell-2 result-cell" id="act-qty-2-${index}">${actQtyValues[index] ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
+                    <td class="act-qty-cell-2 result-cell" id="act-qty-2-${index}">${actQtyValues[index] !== undefined ? actQtyValues[index].toLocaleString('id-ID') : '-'}</td>
                 `;
                 
                 secondTableBody.appendChild(row);
@@ -1352,19 +1374,23 @@
                     calculateGap(index);
                     debounceSave();
                     updateSummaryPanel();
+                    calculateTableTotals(); // Hitung ulang total tabel
                 }
             });
             
-            document.querySelector('.table-container').addEventListener('input', function(e) {
+            // Event listener untuk input ACT/BOX di tabel kedua
+            document.querySelector('#secondTableContainer').addEventListener('input', function(e) {
                 const target = e.target;
                 if (target.matches('.act-box-input')) {
                     const index = target.getAttribute('data-index');
                     const value = target.value;
                     inputValues.actBox[index] = value;
                     
-                    calculateActQty(index);
+                    // Hitung ACT QTY berdasarkan ACT/BOX * STDRT PACK
+                    calculateActQtyFromBox(index);
                     debounceSave();
                     updateSummaryPanel();
+                    calculateTableTotals(); // Hitung ulang total tabel
                 }
             });
             
@@ -1375,6 +1401,9 @@
             
             // Perbarui tampilan hasil
             updateResultsDisplay();
+            
+            // Hitung total tabel
+            calculateTableTotals();
         }
         
         // Setup event listeners
@@ -1596,6 +1625,46 @@
             }
         }
         
+        // Fungsi untuk menghitung total tabel
+        function calculateTableTotals() {
+            let totalStockAwal = 0;
+            let totalProduksi = 0;
+            let totalSurcip = 0;
+            let totalSunter = 0;
+            let totalKiic = 0;
+            let totalActQty = 0;
+            let totalGap = 0;
+            
+            // Hitung total dari setiap kolom
+            kodeInject.forEach((_, index) => {
+                totalStockAwal += parseInt(inputValues.stockAwal[index] || 0);
+                totalProduksi += parseInt(inputValues.produksi[index] || 0);
+                totalSurcip += parseInt(inputValues.surcip[index] || 0);
+                totalSunter += parseInt(inputValues.sunter[index] || 0);
+                totalKiic += parseInt(inputValues.kiic[index] || 0);
+                totalActQty += parseInt(actQtyValues[index] || 0);
+                totalGap += parseInt(gapValues[index] || 0);
+            });
+            
+            // Perbarui nilai di footer tabel
+            totalStockAwalEl.textContent = totalStockAwal.toLocaleString('id-ID');
+            totalProduksiEl.textContent = totalProduksi.toLocaleString('id-ID');
+            totalSurcipEl.textContent = totalSurcip.toLocaleString('id-ID');
+            totalSunterEl.textContent = totalSunter.toLocaleString('id-ID');
+            totalKiicEl.textContent = totalKiic.toLocaleString('id-ID');
+            totalActQtyTableEl.textContent = totalActQty.toLocaleString('id-ID');
+            totalGapTableEl.textContent = totalGap.toLocaleString('id-ID');
+            
+            // Warna untuk total GAP di tabel
+            if (totalGap > 0) {
+                totalGapTableEl.style.color = '#27ae60';
+            } else if (totalGap < 0) {
+                totalGapTableEl.style.color = '#e74c3c';
+            } else {
+                totalGapTableEl.style.color = '';
+            }
+        }
+        
         // Simpan data sheet saat ini
         function saveCurrentSheetData() {
             sheetsData[currentSheet] = {
@@ -1703,7 +1772,8 @@
                 showSecondTable();
             } else if (currentView === 'second') {
                 if (validateCompleteData()) {
-                    calculateAllActQty();
+                    // Hitung semua ACT QTY sebelum kembali ke halaman utama
+                    calculateAllActQtyFromBox();
                     showMainTable();
                 }
             }
@@ -1764,37 +1834,57 @@
             }, 300);
         }
         
-        // Hitung ACT QTY untuk satu baris di tabel kedua
-        function calculateActQty(index) {
+        // Hitung ACT QTY untuk satu baris berdasarkan ACT/BOX * STDRT PACK
+        function calculateActQtyFromBox(index) {
             try {
                 const actBoxInput = document.querySelector(`.act-box-input[data-index="${index}"]`);
-                const actQtyCell = document.getElementById(`act-qty-2-${index}`);
+                const actQtyCell2 = document.getElementById(`act-qty-2-${index}`);
+                const actQtyCell1 = document.getElementById(`act-qty-${index}`);
                 
-                if (actBoxInput.value) {
+                if (actBoxInput && actBoxInput.value) {
                     const actBox = parseInt(actBoxInput.value) || 0;
                     const calculatedActQty = stdrtPack[index] * actBox;
-                    actQtyCell.textContent = calculatedActQty.toLocaleString('id-ID');
-                    actQtyCell.classList.add('positive');
                     
-                    // Simpan nilai untuk digunakan di tabel utama
+                    // Update di kedua tabel
+                    if (actQtyCell2) {
+                        actQtyCell2.textContent = calculatedActQty.toLocaleString('id-ID');
+                        actQtyCell2.classList.add('positive');
+                    }
+                    
+                    if (actQtyCell1) {
+                        actQtyCell1.textContent = calculatedActQty.toLocaleString('id-ID');
+                        actQtyCell1.classList.add('positive');
+                    }
+                    
+                    // Simpan nilai untuk digunakan di perhitungan GAP
                     actQtyValues[index] = calculatedActQty;
                 } else {
-                    actQtyCell.textContent = '-';
-                    actQtyCell.classList.remove('positive');
+                    // Jika input kosong, hapus nilai
+                    if (actQtyCell2) {
+                        actQtyCell2.textContent = '-';
+                        actQtyCell2.classList.remove('positive');
+                    }
+                    
+                    if (actQtyCell1) {
+                        actQtyCell1.textContent = '-';
+                        actQtyCell1.classList.remove('positive');
+                    }
+                    
                     delete actQtyValues[index];
                 }
                 
                 // Hitung ulang GAP setelah ACT QTY berubah
                 calculateGap(index);
+                calculateTableTotals(); // Hitung ulang total tabel
             } catch (error) {
-                console.error('Error calculating ACT QTY:', error);
+                console.error('Error calculating ACT QTY from box:', error);
             }
         }
         
-        // Hitung semua ACT QTY di tabel kedua
-        function calculateAllActQty() {
+        // Hitung semua ACT QTY berdasarkan ACT/BOX * STDRT PACK
+        function calculateAllActQtyFromBox() {
             kodeInject.forEach((_, index) => {
-                calculateActQty(index);
+                calculateActQtyFromBox(index);
             });
         }
         
@@ -1803,33 +1893,53 @@
             kodeInject.forEach((_, index) => {
                 const actQtyCell = document.getElementById(`act-qty-${index}`);
                 
-                if (actQtyValues[index] !== undefined) {
-                    actQtyCell.textContent = actQtyValues[index].toLocaleString('id-ID');
-                    actQtyCell.classList.add('positive');
-                } else {
-                    actQtyCell.textContent = '-';
-                    actQtyCell.classList.remove('positive');
+                if (actQtyCell) {
+                    if (actQtyValues[index] !== undefined) {
+                        actQtyCell.textContent = actQtyValues[index].toLocaleString('id-ID');
+                        actQtyCell.classList.add('positive');
+                    } else {
+                        actQtyCell.textContent = '-';
+                        actQtyCell.classList.remove('positive');
+                    }
                 }
             });
             
             // Hitung ulang GAP setelah memperbarui ACT QTY
             calculateAllGaps();
             updateSummaryPanel();
+            calculateTableTotals(); // Hitung ulang total tabel
         }
         
         // Perbarui tampilan hasil
         function updateResultsDisplay() {
             kodeInject.forEach((_, index) => {
-                // Perbarui ACT QTY
+                // Perbarui ACT QTY di tabel utama
                 const actQtyCell = document.getElementById(`act-qty-${index}`);
-                if (actQtyValues[index] !== undefined) {
-                    actQtyCell.textContent = actQtyValues[index].toLocaleString('id-ID');
-                    actQtyCell.classList.add('positive');
+                if (actQtyCell) {
+                    if (actQtyValues[index] !== undefined) {
+                        actQtyCell.textContent = actQtyValues[index].toLocaleString('id-ID');
+                        actQtyCell.classList.add('positive');
+                    } else {
+                        actQtyCell.textContent = '-';
+                        actQtyCell.classList.remove('positive');
+                    }
+                }
+                
+                // Perbarui ACT QTY di tabel kedua
+                const actQtyCell2 = document.getElementById(`act-qty-2-${index}`);
+                if (actQtyCell2) {
+                    if (actQtyValues[index] !== undefined) {
+                        actQtyCell2.textContent = actQtyValues[index].toLocaleString('id-ID');
+                        actQtyCell2.classList.add('positive');
+                    } else {
+                        actQtyCell2.textContent = '-';
+                        actQtyCell2.classList.remove('positive');
+                    }
                 }
                 
                 // Perbarui GAP
                 const gapCell = document.getElementById(`gap-${index}`);
-                if (gapValues[index] !== undefined) {
+                if (gapCell && gapValues[index] !== undefined) {
                     gapCell.textContent = gapValues[index].toLocaleString('id-ID');
                     
                     // Warna berdasarkan nilai GAP
@@ -1845,6 +1955,7 @@
             });
             
             updateSummaryPanel();
+            calculateTableTotals(); // Hitung ulang total tabel
         }
         
         // Hitung GAP untuk satu baris (rumus yang diperbaiki)
@@ -1861,17 +1972,22 @@
                 const gap = actQty - (stockAwal + produksi - surcip - sunter - kiic);
                 const gapCell = document.getElementById(`gap-${index}`);
                 
-                gapCell.textContent = gap.toLocaleString('id-ID');
+                if (gapCell) {
+                    gapCell.textContent = gap.toLocaleString('id-ID');
+                }
+                
                 gapValues[index] = gap;
                 
                 // Warna berdasarkan nilai GAP
-                gapCell.classList.remove('positive', 'negative', 'zero');
-                if (gap > 0) {
-                    gapCell.classList.add('positive');
-                } else if (gap < 0) {
-                    gapCell.classList.add('negative');
-                } else {
-                    gapCell.classList.add('zero');
+                if (gapCell) {
+                    gapCell.classList.remove('positive', 'negative', 'zero');
+                    if (gap > 0) {
+                        gapCell.classList.add('positive');
+                    } else if (gap < 0) {
+                        gapCell.classList.add('negative');
+                    } else {
+                        gapCell.classList.add('zero');
+                    }
                 }
             } catch (error) {
                 console.error('Error calculating GAP:', error);
@@ -1884,6 +2000,7 @@
                 calculateGap(index);
             });
             updateSummaryPanel();
+            calculateTableTotals(); // Hitung ulang total tabel
         }
         
         // Validasi data lengkap
@@ -1930,6 +2047,27 @@
                     dayData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
                     nightData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
                 });
+                
+                // Add total row
+                dayData.push(['TOTAL', 
+                    totalStockAwalEl.textContent, 
+                    totalProduksiEl.textContent, 
+                    totalSurcipEl.textContent, 
+                    totalSunterEl.textContent, 
+                    totalKiicEl.textContent, 
+                    totalActQtyTableEl.textContent, 
+                    totalGapTableEl.textContent
+                ]);
+                
+                nightData.push(['TOTAL', 
+                    totalStockAwalEl.textContent, 
+                    totalProduksiEl.textContent, 
+                    totalSurcipEl.textContent, 
+                    totalSunterEl.textContent, 
+                    totalKiicEl.textContent, 
+                    totalActQtyTableEl.textContent, 
+                    totalGapTableEl.textContent
+                ]);
                 
                 // Create workbook
                 const wb = XLSX.utils.book_new();
@@ -1981,6 +2119,27 @@
                     dayData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
                     nightData.push([kode, stockAwal, produksi, surcip, sunter, kiic, actQty, gap]);
                 });
+                
+                // Add total row
+                dayData.push(['TOTAL', 
+                    totalStockAwalEl.textContent, 
+                    totalProduksiEl.textContent, 
+                    totalSurcipEl.textContent, 
+                    totalSunterEl.textContent, 
+                    totalKiicEl.textContent, 
+                    totalActQtyTableEl.textContent, 
+                    totalGapTableEl.textContent
+                ]);
+                
+                nightData.push(['TOTAL', 
+                    totalStockAwalEl.textContent, 
+                    totalProduksiEl.textContent, 
+                    totalSurcipEl.textContent, 
+                    totalSunterEl.textContent, 
+                    totalKiicEl.textContent, 
+                    totalActQtyTableEl.textContent, 
+                    totalGapTableEl.textContent
+                ]);
                 
                 // Create workbook
                 const wb = XLSX.utils.book_new();
@@ -2047,11 +2206,6 @@
                 const originalOverflow = activeTableContainer.style.overflow;
                 activeTableContainer.style.overflow = 'hidden';
                 
-                // Sembunyikan elemen yang tidak perlu dalam screenshot
-                const tableScrollIndicator = activeTableContainer.querySelector('.table-scroll-indicator');
-                const originalIndicatorDisplay = tableScrollIndicator.style.display;
-                tableScrollIndicator.style.display = 'none';
-                
                 // Ambil screenshot dari tabel saja
                 html2canvas(activeTableContainer, {
                     backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
@@ -2059,11 +2213,10 @@
                     logging: false, // Nonaktifkan logging untuk performa
                     useCORS: true
                 }).then(canvas => {
-                    // Kembalikan scrollbar dan indikator
+                    // Kembalikan scrollbar
                     activeTableContainer.style.overflow = originalOverflow;
-                    tableScrollIndicator.style.display = originalIndicatorDisplay;
                     
-                    // Konversi canvas ke data URL
+                    // Konversi canvas to data URL
                     const imgData = canvas.toDataURL('image/jpeg', 0.9);
                     
                     // Buat link unduhan
@@ -2086,9 +2239,8 @@
                     hideLoadingIndicator();
                     showToast('Gambar JPG berhasil dihasilkan dan dibagikan');
                 }).catch(error => {
-                    // Kembalikan scrollbar dan indikator jika error
+                    // Kembalikan scrollbar jika error
                     activeTableContainer.style.overflow = originalOverflow;
-                    tableScrollIndicator.style.display = originalIndicatorDisplay;
                     throw error;
                 });
             } catch (error) {
