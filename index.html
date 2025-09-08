@@ -220,6 +220,9 @@
 
         .summary-item {
             text-align: center;
+            background: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 10px;
         }
 
         .summary-value {
@@ -338,6 +341,13 @@
             border-radius: 4px;
             text-align: center;
             font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        input[type="number"]:focus {
+            border-color: #4b6cb7;
+            box-shadow: 0 0 0 2px rgba(75, 108, 183, 0.2);
+            outline: none;
         }
 
         .night-mode input[type="number"] {
