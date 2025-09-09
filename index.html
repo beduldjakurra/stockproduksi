@@ -1,658 +1,1799 @@
-const el = {
-        coverScreen: document.getElementById('coverScreen'),
-        enterButton: document.getElementById('enterButton'),
-        mainApp: document.getElementById('mainApp'),
-        mainTableContainer: document.getElementById('mainTableContainer'),
-        secondTableContainer: document.getElementById('secondTableContainer'),
-        mainTableBody: document.getElementById('mainTableBody'),
-        secondTableBody: document.getElementById('secondTableBody'),
-        prevButton: document.getElementById('prevButton'),
-        nextButton: document.getElementById('nextButton'),
-        modeToggle: document.getElementById('modeToggle'),
-        pageTitle: document.getElementById('pageTitle'),
-        currentDate: document.getElementById('currentDate'),
-        daySheet: document.getElementById('daySheet'),
-        nightSheet: document.getElementById('nightSheet'),
-        loadingIndicator: document.getElementById('loadingIndicator'),
-        statusIndicator: document.getElementById('statusIndicator'),
-        toast: document.getElementById('toast'),
-        confirmationModal: document.getElementById('confirmationModal'),
-        fileInput: document.getElementById('fileInput'),
-        container: document.querySelector('.container'),
-        progressBar: document.getElementById('progressBar')
-    };
-
-    function checkXLSXAvailability() {
-        if (typeof XLSX === 'undefined') {
-            console.error('XLSX library is not loaded.');
-            return false;
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PT Fuji Seat Indonesia - Laporan Produksi</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMVaG2pfmKGx2L2ZAiPf4EKOrH4A==" crossorigin="anonymous"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --primary-dark: #2980b9;
+            --secondary: #2ecc71;
+            --secondary-dark: #27ae60;
+            --danger: #e74c3c;
+            --danger-dark: #c0392b;
+            --warning: #f39c12;
+            --warning-dark: #e67e22;
+            --info: #9b59b6;
+            --info-dark: #8e44ad;
+            --dark: #2c3e50;
+            --light: #ecf0f1;
+            --gray: #7f8c8d;
+            --gray-light: #bdc3c7;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+            --transition: all 0.3s ease;
+            --gradient-primary: linear-gradient(270deg, #3498db, #2980b9);
+            --gradient-secondary: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+            --gradient-danger: linear-gradient(135deg, var(--danger), var(--danger-dark));
+            --gradient-warning: linear-gradient(135deg, var(--warning), var(--warning-dark));
+            --gradient-info: linear-gradient(135deg, var(--info), var(--info-dark));
         }
-        return true;
-    }
 
-    function init() {
-        updateDate();
-        loadDataFromLocalStorage();
-        initializeTables();
-        setupEventListeners();
-        setupAutoSave();
-        setupInputNavigation();
-        if (el.progressBar) window.addEventListener('scroll', updateProgressBar);
-        document.addEventListener('keydown', handleKeyboard);
-    }
-
-    function updateDate() {
-        const now = new Date();
-        el.currentDate.textContent = now.toLocaleDateString('id-ID', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric'
-        });
-    }
-
-    function initializeTables() {
-        if (!el.mainTableBody || !el.secondTableBody) return;
-        el.mainTableBody.innerHTML = '';
-        el.secondTableBody.innerHTML = '';
-        for (let i = 0; i < N; i++) {
-            const row1 = document.createElement('tr');
-            row1.innerHTML = `
-                <td class="kode-inject" aria-label="Kode ${kodeInject[i]}">${kodeInject[i]}</td>
-                <td><input type="number" class="stock-awal-input" data-index="${i}" value="${inputValues.stockAwal[i] || ''}" min="0" max="999999" aria-label="Stock Awal ${kodeInject[i]}"></td>
-                <td><input type="number" class="produksi-input" data-index="${i}" value="${inputValues.produksi[i] || ''}" min="0" max="999999" aria-label="Produksi ${kodeInject[i]}"></td>
-                <td><input type="number" class="surcip-input" data-index="${i}" value="${inputValues.surcip[i] || ''}" min="0" max="999999" aria-label="Surcip ${kodeInject[i]}"></td>
-                <td><input type="number" class="sunter-input" data-index="${i}" value="${inputValues.sunter[i] || ''}" min="0" max="999999" aria-label="Sunter ${kodeInject[i]}"></td>
-                <td><input type="number" class="kiic-input" data-index="${i}" value="${inputValues.kiic[i] || ''}" min="0" max="999999" aria-label="KIIC ${kodeInject[i]}"></td>
-                <td class="act-qty-cell result-cell" id="act-qty-${i}" aria-label="ACT QTY ${kodeInject[i]}" title="Dihitung dari tabel kedua: STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>
-                <td class="gap-cell result-cell" id="gap-${i}" aria-label="GAP ${kodeInject[i]}" title="Rumus: ACT QTY - (STOCK AWAL + PRODUKSI - SURCIP - SUNTER - KIIC)">${gapValues[i] || '-'}</td>`;
-            el.mainTableBody.appendChild(row1);
-            const row2 = document.createElement('tr');
-            row2.innerHTML = `
-                <td class="kode-inject">${kodeInject[i]}</td>
-                <td aria-label="STDRT PACK ${kodeInject[i]}">${stdrtPack[i]}</td>
-                <td><input type="number" class="act-box-input" data-index="${i}" value="${inputValues.actBox[i] || ''}" min="0" max="9999" aria-label="ACT Box ${kodeInject[i]}"></td>
-                <td class="act-qty-cell-2 result-cell" id="act-qty-2-${i}" aria-label="ACT QTY 2 ${kodeInject[i]}" title="STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>`;
-            el.secondTableBody.appendChild(row2);
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
-        setupEventDelegation();
-        updateResultsDisplay();
-    }
 
-    function setupEventDelegation() {
-        if (!el.mainTableContainer || !el.secondTableContainer) return;
-        el.mainTableContainer.addEventListener('input', e => {
-            if (e.target.matches('.stock-awal-input,.produksi-input,.surcip-input,.sunter-input,.kiic-input')) {
-                const idx = parseInt(e.target.dataset.index);
-                const cls = e.target.classList[0];
-                const val = e.target.value;
-                inputValues[cls.replace('-input', '')][idx] = val;
-                calculateGap(idx);
-                debounceSave();
-            }
-        });
-        el.secondTableContainer.addEventListener('input', e => {
-            if (e.target.matches('.act-box-input')) {
-                const idx = parseInt(e.target.dataset.index);
-                const val = e.target.value;
-                inputValues.actBox[idx] = val;
-                calculateActQty(idx);
-                debounceSave();
-            }
-        });
-    }
-
-    function setupEventListeners() {
-        if (!el.enterButton || !el.nextButton || !el.prevButton || !el.modeToggle) return;
-        el.enterButton.addEventListener('click', e => {
-            const rect = e.target.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const ripple = document.createElement('span');
-            ripple.className = 'ripple';
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            el.enterButton.appendChild(ripple);
-            setTimeout(() => ripple.remove(), 600);
-            el.coverScreen.classList.add('hidden');
-            setTimeout(() => {
-                el.mainApp.style.display = 'block';
-            }, 800);
-        });
-        el.nextButton.addEventListener('click', () => {
-            currentView === 'main' ? showSecondTable() : (calculateAllActQty(), showMainTable());
-        });
-        el.prevButton.addEventListener('click', showMainTable);
-        el.modeToggle.addEventListener('change', () => {
-            if (!el.container) return;
-            el.container.classList.add('fade-effect');
-            setTimeout(() => {
-                isNightMode = this.checked;
-                document.body.classList.toggle('night-mode', isNightMode);
-                el.pageTitle.innerHTML = `<i class="fas fa-industry"></i> STOCK PRODUKSI ${isNightMode ? 'NIGHT' : 'DAY'}`;
-                saveCurrentSheetData();
-                currentSheet = isNightMode ? 2 : 1;
-                el.daySheet.classList.toggle('active', !isNightMode);
-                el.nightSheet.classList.toggle('active', isNightMode);
-                loadSheetData();
-                el.container.classList.remove('fade-effect');
-            }, 300);
-        });
-    }
-
-    function showSecondTable() {
-        if (!el.container || !el.mainTableContainer || !el.secondTableContainer || !el.prevButton || !el.nextButton) return;
-        el.container.classList.add('door-slide');
-        setTimeout(() => {
-            el.mainTableContainer.classList.add('hidden');
-            el.secondTableContainer.classList.remove('hidden');
-            el.prevButton.classList.remove('hidden');
-            el.nextButton.textContent = 'Hitung & Kembali';
-            el.nextButton.className = 'nav-button calculate-button';
-            currentView = 'second';
-            el.container.classList.remove('door-slide');
-        }, 400);
-    }
-
-    function showMainTable() {
-        if (!el.container || !el.secondTableContainer || !el.mainTableContainer || !el.prevButton || !el.nextButton) return;
-        el.container.classList.add('door-slide');
-        setTimeout(() => {
-            el.secondTableContainer.classList.add('hidden');
-            el.mainTableContainer.classList.remove('hidden');
-            el.prevButton.classList.add('hidden');
-            el.nextButton.textContent = 'Selanjutnya';
-            el.nextButton.className = 'nav-button next-button';
-            updateMainTableActQty();
-            currentView = 'main';
-            el.container.classList.remove('door-slide');
-        }, 400);
-    }
-
-    function calculateActQty(i) {
-        const actBox = parseInt(inputValues.actBox[i] || 0);
-        const actQty = stdrtPack[i] * actBox;
-        actQtyValues[i] = actQty;
-        const cell2 = document.getElementById(`act-qty-2-${i}`);
-        if (cell2) {
-            cell2.textContent = actQty;
-            cell2.classList.add('positive');
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e7eb 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+            transition: var(--transition);
         }
-        calculateGap(i);
-    }
 
-    function calculateGap(i) {
-        const sa = parseInt(inputValues.stockAwal[i] || 0);
-        const p = parseInt(inputValues.produksi[i] || 0);
-        const s = parseInt(inputValues.surcip[i] || 0);
-        const su = parseInt(inputValues.sunter[i] || 0);
-        const k = parseInt(inputValues.kiic[i] || 0);
-        const aq = actQtyValues[i] || 0;
-        const gap = aq - (sa + p - s - su - k);
-        gapValues[i] = gap;
-        const cell = document.getElementById(`gap-${i}`);
-        if (cell) {
-            cell.textContent = gap;
-            cell.classList.remove('positive', 'negative', 'zero');
-            if (gap > 0) cell.classList.add('positive');
-            else if (gap < 0) cell.classList.add('negative');
-            else cell.classList.add('zero');
+        body.night-mode {
+            background: linear-gradient(135deg, #1a2431 0%, #0d1117 100%);
+            color: var(--light);
         }
-    }
 
-    function calculateAllActQty() {
-        for (let i = 0; i < N; i++) calculateActQty(i);
-    }
+        .cover-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--gradient-primary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: transform 0.8s ease-in-out;
+            padding: 20px;
+        }
 
-    function updateMainTableActQty() {
-        for (let i = 0; i < N; i++) {
-            const cell = document.getElementById(`act-qty-${i}`);
-            if (cell) {
-                if (actQtyValues[i] !== undefined) {
-                    cell.textContent = actQtyValues[i];
-                    cell.classList.add('positive');
-                } else {
-                    cell.textContent = '-';
-                    cell.classList.remove('positive');
-                }
+        .cover-screen.hidden {
+            transform: translateX(-100%);
+        }
+
+        .logo-container {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: float 3s ease-in-out infinite;
+            position: relative;
+        }
+
+        .logo {
+            font-size: 48px;
+            font-weight: 800;
+            color: white;
+            text-shadow: 2px 2px 12px rgba(0,0,0,0.3);
+            letter-spacing: 2px;
+            line-height: 1.3;
+            margin-bottom: 15px;
+        }
+
+        .logo-subtitle {
+            font-size: 20px;
+            color: rgba(255,255,255,0.9);
+            margin-top: 15px;
+            text-shadow: 1px 1px 4px rgba(0,0,0,0.2);
+            font-weight: 400;
+            letter-spacing: 1px;
+            padding: 10px 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 8px;
+            backdrop-filter: blur(5px);
+        }
+
+        .enter-button {
+            padding: 20px 60px;
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+            background: linear-gradient(135deg, #ffffff, #e0e0e0);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+            overflow: hidden;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .enter-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            background: var(--gradient-primary);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3), 0 0 15px rgba(52,152,219,0.5);
+            color: white;
+        }
+
+        .enter-button:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .enter-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: 0.5s;
+        }
+
+        .enter-button:hover:before {
+            left: 100%;
+        }
+
+        .enter-button .ripple {
+            position: absolute;
+            background: rgba(255,255,255,0.3);
+            border-radius: 50%;
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        }
+
+        @keyframes ripple {
+            to {
+                transform: scale(4);
+                opacity: 0;
             }
         }
-        calculateAllGaps();
-    }
 
-    function calculateAllGaps() {
-        for (let i = 0; i < N; i++) calculateGap(i);
-    }
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+            100% { transform: translateY(0px); }
+        }
 
-    function updateResultsDisplay() {
-        for (let i = 0; i < N; i++) {
-            const aqCell = document.getElementById(`act-qty-${i}`);
-            if (aqCell && actQtyValues[i] !== undefined) {
-                aqCell.textContent = actQtyValues[i];
-                aqCell.classList.add('positive');
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+           100% { transform: scale(1); }
+        }
+
+        .main-app {
+            display: none;
+            opacity: 0;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            padding: 25px;
+            position: relative;
+            transition: var(--transition);
+            overflow: visible;
+        }
+
+        body.night-mode .container {
+            background-color: var(--dark);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        body.night-mode header {
+            border-bottom-color: rgba(255,255,255,0.1);
+        }
+
+        h1 {
+            color: var(--dark);
+            margin-bottom: 10px;
+            font-size: 28px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: var(--transition);
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+            text-align: center;
+            font-weight: 700;
+        }
+
+        body.night-mode h1 {
+            color: var(--light);
+        }
+
+        .date {
+            color: var(--gray);
+            font-size: 16px;
+            margin-bottom: 20px;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        body.night-mode .date {
+            color: var(--gray-light);
+        }
+
+        .mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            background: rgba(52,152,219,0.1);
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        body.night-mode .mode-toggle {
+            background: rgba(52,152,219,0.2);
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 30px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--gradient-primary);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background: var(--gradient-info);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(30px);
+        }
+
+        .sheet-indicator {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .sheet-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--gray-light);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        body.night-mode .sheet-dot {
+            background-color: #4a6572;
+        }
+
+        .sheet-dot.active {
+            background-color: var(--primary);
+            transform: scale(1.3);
+            box-shadow: 0 0 10px var(--primary);
+        }
+
+        .action-buttons {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .action-button {
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            text-align: center;
+            min-height: 50px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .action-button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .action-button:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .action-button:hover:not(:disabled):before {
+            left: 100%;
+        }
+
+        .action-button:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 20px rgba(0,0,0,0.2);
+        }
+
+        .action-button.save {
+            background: var(--gradient-secondary);
+        }
+
+        .action-button.share {
+            background: var(--gradient-primary);
+        }
+
+        .action-button.jpg-share {
+            background: var(--gradient-danger);
+        }
+
+        .action-button.import {
+            background: var(--gradient-info);
+        }
+
+        .action-button.reset {
+            background: var(--gradient-warning);
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin: 0 auto;
+            border-radius: var(--border-radius);
+            border: 1px solid #e0e0e0;
+            margin-bottom: 25px;
+            transition: var(--transition);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+            width: 100%;
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+        }
+
+        body.night-mode .table-container {
+            border-color: #4a6572;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th {
+            background: var(--gradient-primary);
+            color: white;
+            font-weight: 600;
+            text-align: center;
+            padding: 15px 10px;
+            position: sticky;
+            top: 0;
+            transition: var(--transition);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            font-size: 14px;
+        }
+
+        td {
+            padding: 12px 10px;
+            text-align: center;
+            border-bottom: 1px solid #e0e0e0;
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        body.night-mode td {
+            border-bottom-color: #4a6572;
+        }
+
+        tr {
+            transition: var(--transition);
+        }
+
+        tr:nth-child(even) {
+            background-color: #f8f9fa;
+        }
+
+        body.night-mode tr:nth-child(even) {
+            background-color: #34495e;
+        }
+
+        tr:hover {
+            background-color: #f1f8ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+        }
+
+        body.night-mode tr:hover {
+            background-color: #3c5066;
+        }
+
+        .kode-inject {
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            transition: var(--transition);
+            font-size: 14px;
+        }
+
+        body.night-mode .kode-inject {
+            color: var(--light);
+        }
+
+        th, td {
+            width: 12.5%;
+        }
+
+        th:first-child, td:first-child {
+            width: auto;
+            text-align: left;
+        }
+
+        .table-2 th, .table-2 td {
+            width: 25%;
+        }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            gap: 15px;
+        }
+
+        .nav-button {
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            flex: 1;
+            min-height: 50px;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+
+        .next-button {
+            background: var(--gradient-primary);
+        }
+
+        .prev-button {
+            background: var(--gradient-info);
+        }
+
+        .calculate-button {
+            background: var(--gradient-secondary);
+        }
+
+        .back-button {
+            background: var(--gradient-danger);
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--gray);
+            font-size: 14px;
+            transition: var(--transition);
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        body.night-mode .footer {
+            color: var(--gray-light);
+            border-top-color: #4a6572;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            text-align: center;
+            font-size: 14px;
+            transition: var(--transition);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            font-weight: 500;
+        }
+
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.2);
+        }
+
+        body.night-mode input[type="number"] {
+            background-color: #4a6572;
+            border-color: #5d6d7e;
+            color: var(--light);
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        body.night-mode input[type="number"]:focus {
+            box-shadow: 0 0 0 3px rgba(52,152,219,0.3);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .result-cell {
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .positive {
+            color: var(--secondary);
+        }
+
+        .negative {
+            color: var(--danger);
+        }
+
+        .zero {
+            color: var(--gray);
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--secondary);
+            color: white;
+            padding: 12px 18px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+            font-size: 14px;
+            font-weight: 500;
+            animation: slideInRight 0.5s ease;
+        }
+
+        .status-indicator {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 12px 18px;
+            border-radius: var(--border-radius);
+            font-size: 14px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+            animation: slideInRight 0.5s ease;
+            font-weight: 500;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--secondary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            z-index: 2000;
+            display: none;
+            font-size: 14px;
+            max-width: 90%;
+            text-align: center;
+            animation: slideInDown 0.5s ease;
+            font-weight: 500;
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        @keyframes slideInRight {
+            from { transform: translateX(100px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @keyframes slideInDown {
+            from { transform: translate(-50%, -100px); opacity: 0; }
+            to { transform: translate(-50%, 0); opacity: 1; }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            transform: translateY(-50px);
+            transition: var(--transition);
+        }
+
+        body.night-mode .modal-content {
+            background: var(--dark);
+        }
+
+        .modal.active .modal-content {
+            transform: translateY(0);
+        }
+
+        .modal h3 {
+            margin-bottom: 15px;
+            color: var(--dark);
+            font-size: 24px;
+        }
+
+        body.night-mode .modal h3 {
+            color: var(--light);
+        }
+
+        .modal p {
+            margin-bottom: 25px;
+            color: var(--gray);
+        }
+
+        body.night-mode .modal p {
+            color: var(--gray-light);
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .modal-button {
+            padding: 12px 25px;
+            border: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            min-width: 100px;
+        }
+
+        .modal-button.cancel {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        body.night-mode .modal-button.cancel {
+            background: #4a6572;
+            color: white;
+        }
+
+        .modal-button.confirm {
+            background: var(--danger);
+            color: white;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .progress-bar {
+            height: 4px;
+            width: 0;
+            background: var(--secondary);
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 9999;
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .action-buttons {
+                grid-template-columns: 1fr;
             }
-            const gCell = document.getElementById(`gap-${i}`);
-            if (gCell && gapValues[i] !== undefined) {
-                gCell.textContent = gapValues[i];
-                gCell.classList.remove('positive', 'negative', 'zero');
-                if (gapValues[i] > 0) gCell.classList.add('positive');
-                else if (gapValues[i] < 0) gCell.classList.add('negative');
-                else gCell.classList.add('zero');
+            .nav-buttons {
+                flex-direction: column;
+            }
+            .logo {
+                font-size: 36px;
+            }
+            .container {
+                padding: 20px;
             }
         }
-    }
 
-    function saveDataToLocalStorage() {
-        try {
-            saveCurrentSheetData();
-            const data = { sheetsData, lastSaved: new Date().toISOString() };
-            localStorage.setItem('productionData', JSON.stringify(data));
-            return true;
-        } catch (e) {
-            console.error(e);
-            showToast('Gagal simpan: Storage penuh?', true);
-            return false;
-        }
-    }
-
-    function loadDataFromLocalStorage() {
-        try {
-            const sd = localStorage.getItem('productionData');
-            if (sd) {
-                const pd = JSON.parse(sd);
-                if (pd.sheetsData) Object.assign(sheetsData, pd.sheetsData);
-                loadSheetData();
-                showToast('Data dimuat');
+        @media (max-width: 480px) {
+            body {
+                padding: 15px;
             }
-        } catch (e) {
-            console.error(e);
-            showToast('Gagal muat data', true);
+            .cover-screen {
+                padding: 15px;
+            }
+            .logo {
+                font-size: 28px;
+            }
+            .logo-subtitle {
+                font-size: 16px;
+            }
+            .enter-button {
+                padding: 14px 40px;
+                font-size: 16px;
+            }
+            .container {
+                padding: 15px;
+                border-radius: 10px;
+            }
+            h1 {
+                font-size: 22px;
+            }
+            .date {
+                font-size: 14px;
+            }
+            .action-button, .nav-button {
+                padding: 12px 15px;
+                font-size: 14px;
+            }
+            th, td {
+                padding: 10px 8px;
+                font-size: 12px;
+            }
+            .kode-inject {
+                font-size: 12px;
+            }
+            input[type="number"] {
+                padding: 8px;
+                font-size: 12px;
+            }
+            .footer {
+                font-size: 12px;
+            }
+            .modal-content {
+                padding: 20px;
+            }
+            .modal-button {
+                padding: 10px 20px;
+            }
         }
-    }
-
-    function saveCurrentSheetData() {
-        sheetsData[currentSheet] = {
-            inputValues: { ...inputValues },
-            actQtyValues: { ...actQtyValues },
-            gapValues: { ...gapValues }
+    </style>
+</head>
+<body>
+    <div class="progress-bar" id="progressBar"></div>
+    <div class="cover-screen" id="coverScreen">
+        <div class="logo-container">
+            <div class="logo">PT FUJI SEAT INDONESIA</div>
+            <div class="logo-subtitle">Laporan Data Stock Akhir Proses Div.INJECTION</div>
+        </div>
+        <button class="enter-button" id="enterButton"><i class="fas fa-arrow-right"></i> MASUK APLIKASI</button>
+    </div>
+    <div class="main-app" id="mainApp">
+        <div class="container">
+            <header>
+                <h1 id="pageTitle"><i class="fas fa-industry"></i> STOCK PRODUKSI DAY</h1>
+                <div class="date" id="currentDate"></div>
+                <div class="mode-toggle">
+                    <span><i class="fas fa-sun"></i> Day</span>
+                    <label class="toggle-switch">
+                        <input type="checkbox" id="modeToggle" aria-label="Toggle Night Mode">
+                        <span class="slider"></span>
+                    </label>
+                    <span>Night <i class="fas fa-moon"></i></span>
+                </div>
+                <div class="sheet-indicator">
+                    <div class="sheet-dot active" id="daySheet" title="Shift Day" aria-label="Sheet Day"></div>
+                    <div class="sheet-dot" id="nightSheet" title="Shift Night" aria-label="Sheet Night"></div>
+                </div>
+                <div class="action-buttons">
+                    <button class="action-button save" id="saveExcelButton" onclick="saveToExcel()" aria-label="Save to Excel and Share"><i class="fas fa-file-excel"></i> Save to Excel</button>
+                    <button class="action-button share" onclick="shareToWhatsApp()" aria-label="Share to WhatsApp"><i class="fab fa-whatsapp"></i> Share to WhatsApp</button>
+                    <button class="action-button jpg-share" onclick="shareAsJpg()" aria-label="Convert to JPG and Share"><i class="fas fa-image"></i> Convert to JPG</button>
+                    <button class="action-button import" id="importExcelButton" onclick="document.getElementById('fileInput').click()" aria-label="Import Excel"><i class="fas fa-file-import"></i> Import Excel</button>
+                    <button class="action-button reset" onclick="confirmReset()" aria-label="Reset Data"><i class="fas fa-redo"></i> Reset Data</button>
+                </div>
+                <input type="file" id="fileInput" class="file-input" accept=".xlsx,.xls" onchange="importExcel(this.files)" aria-label="File Import">
+            </header>
+            <div class="table-container" id="mainTableContainer">
+                <table id="mainTable" role="grid" aria-label="Tabel Utama Produksi">
+                    <thead>
+                        <tr>
+                            <th scope="col">KODE INJECT</th>
+                            <th scope="col">STOCK AWAL</th>
+                            <th scope="col">PRODUKSI</th>
+                            <th scope="col">SURCIP</th>
+                            <th scope="col">SUNTER</th>
+                            <th scope="col">KIIC</th>
+                            <th scope="col">ACT QTY</th>
+                            <th scope="col">GAP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="mainTableBody"></tbody>
+                </table>
+            </div>
+            <div class="table-container hidden" id="secondTableContainer">
+                <table id="secondTable" class="table-2" role="grid" aria-label="Tabel Perhitungan Box">
+                    <thead>
+                        <tr>
+                            <th scope="col">KODE INJECT</th>
+                            <th scope="col">STDRT PACK</th>
+                            <th scope="col">ACT /BOX</th>
+                            <th scope="col">ACT QTY</th>
+                        </tr>
+                    </thead>
+                    <tbody id="secondTableBody"></tbody>
+                </table>
+            </div>
+            <div class="nav-buttons">
+                <button id="prevButton" class="nav-button prev-button hidden" aria-label="Kembali"><i class="fas fa-arrow-left"></i> Kembali</button>
+                <button id="nextButton" class="nav-button next-button" aria-label="Selanjutnya">Selanjutnya <i class="fas fa-arrow-right"></i></button>
+            </div>
+            <footer class="footer">
+                <p><i class="far fa-copyright"></i> 2025 Laporan Produksi Harian - PT Fuji Seat Indonesia</p>
+            </footer>
+        </div>
+    </div>
+    <div class="loading-indicator" id="loadingIndicator"><i class="fas fa-spinner fa-spin"></i> Memproses...</div>
+    <div class="status-indicator" id="statusIndicator"><i class="fas fa-check-circle"></i> Data tersimpan otomatis</div>
+    <div class="toast" id="toast"><i class="fas fa-check-circle"></i> Operasi berhasil</div>
+    <div class="modal" id="confirmationModal" role="dialog" aria-labelledby="modalTitle">
+        <div class="modal-content">
+            <h3 id="modalTitle"><i class="fas fa-exclamation-triangle"></i> Konfirmasi</h3>
+            <p id="modalMessage">Apakah Anda yakin ingin mereset semua data?</p>
+            <div class="modal-buttons">
+                <button class="modal-button cancel" onclick="closeModal()" aria-label="Batal">Batal</button>
+                <button class="modal-button confirm" onclick="performReset()" aria-label="Reset">Ya, Reset</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Konfigurasi dan inisialisasi
+        const kodeInject = ["J-303 RH", "J-305", "J-306 RH", "J-306 LH", "J-307", "J-308 RH", "J-308 LH", "J-309", "J-1401 RH", "J-1402 LH", "J-1403 RH", "J-1403 LH", "J-1404 RH", "J-1404 LH", "J-1405 RH", "J-1405 LH", "J-1406 RH", "J-1406 LH", "J-1407 RH", "J-1407 LH", "J-1408 RH", "J-1408 LH", "J-1409 RH", "J-1409 LH", "J-1410 RH", "J-1411 LH", "J-1412 RH", "J-1413 LH", "J-5501", "J-5502", "J-5503", "J-5504", "J-5505", "J-5506", "J-5508 RH", "J-5508 LH", "J-5509 RH", "J-5509 LH", "136B", "202B"];
+        const stdrtPack = [104, 200, 32, 32, 52, 15, 15, 48, 72, 72, 40, 40, 60, 60, 9, 9, 10, 10, 144, 144, 120, 120, 40, 40, 18, 18, 24, 24, 11, 11, 12, 12, 192, 180, 200, 200, 24, 24, 25, 25];
+        const N = kodeInject.length;
+        
+        // State aplikasi
+        let currentView = 'main';
+        let isNightMode = false;
+        let currentSheet = 1;
+        let sheetsData = { 1: {}, 2: {} };
+        let inputValues = {
+            stockAwal: {},
+            produksi: {},
+            surcip: {},
+            sunter: {},
+            kiic: {},
+            actBox: {}
         };
-    }
+        let actQtyValues = {};
+        let gapValues = {};
+        let autoSaveInterval;
+        let saveTimeout;
 
-    function loadSheetData() {
-        if (sheetsData[currentSheet]) {
-            const sh = sheetsData[currentSheet];
-            Object.assign(inputValues, sh.inputValues);
-            Object.assign(actQtyValues, sh.actQtyValues);
-            Object.assign(gapValues, sh.gapValues);
+        // Cache elemen DOM
+        const el = {
+            coverScreen: document.getElementById('coverScreen'),
+            enterButton: document.getElementById('enterButton'),
+            mainApp: document.getElementById('mainApp'),
+            mainTableContainer: document.getElementById('mainTableContainer'),
+            secondTableContainer: document.getElementById('secondTableContainer'),
+            mainTableBody: document.getElementById('mainTableBody'),
+            secondTableBody: document.getElementById('secondTableBody'),
+            prevButton: document.getElementById('prevButton'),
+            nextButton: document.getElementById('nextButton'),
+            modeToggle: document.getElementById('modeToggle'),
+            pageTitle: document.getElementById('pageTitle'),
+            currentDate: document.getElementById('currentDate'),
+            daySheet: document.getElementById('daySheet'),
+            nightSheet: document.getElementById('nightSheet'),
+            loadingIndicator: document.getElementById('loadingIndicator'),
+            statusIndicator: document.getElementById('statusIndicator'),
+            toast: document.getElementById('toast'),
+            confirmationModal: document.getElementById('confirmationModal'),
+            fileInput: document.getElementById('fileInput'),
+            container: document.querySelector('.container'),
+            progressBar: document.getElementById('progressBar')
+        };
+
+        // Fungsi utilitas
+        const debounce = (func, wait) => {
+            let timeout;
+            return (...args) => {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(this, args), wait);
+            };
+        };
+
+        // Inisialisasi aplikasi
+        function init() {
+            updateDate();
+            loadDataFromLocalStorage();
             initializeTables();
-        } else {
-            resetData();
+            setupEventListeners();
+            setupAutoSave();
+            setupInputNavigation();
+            if (el.progressBar) window.addEventListener('scroll', updateProgressBar);
+            document.addEventListener('keydown', handleKeyboard);
         }
-    }
 
-    function resetData() {
-        for (let k in inputValues) inputValues[k] = {};
-        for (let k in actQtyValues) delete actQtyValues[k];
-        for (let k in gapValues) delete gapValues[k];
-        initializeTables();
-    }
+        function updateDate() {
+            const now = new Date();
+            el.currentDate.textContent = now.toLocaleDateString('id-ID', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+        }
 
-    function setupAutoSave() {
-        if (autoSaveInterval) clearInterval(autoSaveInterval);
-        autoSaveInterval = setInterval(() => {
-            saveDataToLocalStorage() && showStatusIndicator('Data tersimpan otomatis', 2000);
-        }, 30000);
-    }
+        function initializeTables() {
+            if (!el.mainTableBody || !el.secondTableBody) return;
+            
+            el.mainTableBody.innerHTML = '';
+            el.secondTableBody.innerHTML = '';
+            
+            for (let i = 0; i < N; i++) {
+                const row1 = document.createElement('tr');
+                row1.innerHTML = `
+                    <td class="kode-inject" aria-label="Kode ${kodeInject[i]}">${kodeInject[i]}</td>
+                    <td><input type="number" class="stock-awal-input" data-index="${i}" value="${inputValues.stockAwal[i] || ''}" min="0" max="999999" aria-label="Stock Awal ${kodeInject[i]}"></td>
+                    <td><input type="number" class="produksi-input" data-index="${i}" value="${inputValues.produksi[i] || ''}" min="0" max="999999" aria-label="Produksi ${kodeInject[i]}"></td>
+                    <td><input type="number" class="surcip-input" data-index="${i}" value="${inputValues.surcip[i] || ''}" min="0" max="999999" aria-label="Surcip ${kodeInject[i]}"></td>
+                    <td><input type="number" class="sunter-input" data-index="${i}" value="${inputValues.sunter[i] || ''}" min="0" max="999999" aria-label="Sunter ${kodeInject[i]}"></td>
+                    <td><input type="number" class="kiic-input" data-index="${i}" value="${inputValues.kiic[i] || ''}" min="0" max="999999" aria-label="KIIC ${kodeInject[i]}"></td>
+                    <td class="act-qty-cell result-cell" id="act-qty-${i}" aria-label="ACT QTY ${kodeInject[i]}" title="Dihitung dari tabel kedua: STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>
+                    <td class="gap-cell result-cell" id="gap-${i}" aria-label="GAP ${kodeInject[i]}" title="Rumus: ACT QTY - (STOCK AWAL + PRODUKSI - SURCIP - SUNTER - KIIC)">${gapValues[i] || '-'}</td>`;
+                el.mainTableBody.appendChild(row1);
+                
+                const row2 = document.createElement('tr');
+                row2.innerHTML = `
+                    <td class="kode-inject">${kodeInject[i]}</td>
+                    <td aria-label="STDRT PACK ${kodeInject[i]}">${stdrtPack[i]}</td>
+                    <td><input type="number" class="act-box-input" data-index="${i}" value="${inputValues.actBox[i] || ''}" min="0" max="9999" aria-label="ACT Box ${kodeInject[i]}"></td>
+                    <td class="act-qty-cell-2 result-cell" id="act-qty-2-${i}" aria-label="ACT QTY 2 ${kodeInject[i]}" title="STDRT PACK * ACT/BOX">${actQtyValues[i] || '-'}</td>`;
+                el.secondTableBody.appendChild(row2);
+            }
+            
+            setupEventDelegation();
+            updateResultsDisplay();
+        }
 
-    function debounceSave() {
-        clearTimeout(saveTimeout);
-        saveTimeout = setTimeout(() => {
-            saveDataToLocalStorage() && showStatusIndicator('Data tersimpan', 1500);
-        }, 2000);
-    }
+        function setupEventDelegation() {
+            if (!el.mainTableContainer || !el.secondTableContainer) return;
+            
+            const handleInput = debounce((e) => {
+                if (e.target.matches('.stock-awal-input, .produksi-input, .surcip-input, .sunter-input, .kiic-input')) {
+                    const idx = parseInt(e.target.dataset.index);
+                    const cls = e.target.classList[0];
+                    const val = e.target.value;
+                    inputValues[cls.replace('-input', '')][idx] = val;
+                    calculateGap(idx);
+                    debounceSave();
+                } else if (e.target.matches('.act-box-input')) {
+                    const idx = parseInt(e.target.dataset.index);
+                    const val = e.target.value;
+                    inputValues.actBox[idx] = val;
+                    calculateActQty(idx);
+                    debounceSave();
+                }
+            }, 300);
+            
+            el.mainTableContainer.addEventListener('input', handleInput);
+            el.secondTableContainer.addEventListener('input', handleInput);
+        }
 
-    function showStatusIndicator(msg, d = 2000) {
-        if (!el.statusIndicator) return;
-        el.statusIndicator.textContent = msg;
-        el.statusIndicator.style.display = 'block';
-        setTimeout(() => el.statusIndicator.style.display = 'none', d);
-    }
-
-    function showToast(msg, isErr = false) {
-        if (!el.toast) return;
-        el.toast.textContent = msg;
-        el.toast.className = isErr ? 'toast error' : 'toast';
-        el.toast.style.display = 'block';
-        setTimeout(() => el.toast.style.display = 'none', 3000);
-    }
-
-    function showLoadingIndicator() {
-        if (!el.loadingIndicator) return;
-        el.loadingIndicator.style.display = 'block';
-    }
-
-    function hideLoadingIndicator() {
-        if (!el.loadingIndicator) return;
-        el.loadingIndicator.style.display = 'none';
-    }
-
-    function showModal() {
-        if (!el.confirmationModal) return;
-        el.confirmationModal.classList.add('active');
-    }
-
-    function closeModal() {
-        if (!el.confirmationModal) return;
-        el.confirmationModal.classList.remove('active');
-    }
-
-    function confirmReset() {
-        const msgEl = document.getElementById('modalMessage');
-        if (msgEl) msgEl.textContent = "Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.";
-        showModal();
-    }
-
-    function performReset() {
-        resetData();
-        closeModal();
-        showToast('Data direset');
-    }
-
-    function setupInputNavigation() {
-        const inputs = [...document.querySelectorAll('input[type="number"]')];
-        inputs.forEach((inp, idx) => {
-            inp.addEventListener('keydown', e => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const ni = (idx + 1) % inputs.length;
-                    inputs[ni].focus();
+        function setupEventListeners() {
+            if (!el.enterButton || !el.nextButton || !el.prevButton || !el.modeToggle) return;
+            
+            el.enterButton.addEventListener('click', e => {
+                const rect = e.target.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const ripple = document.createElement('span');
+                ripple.className = 'ripple';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                el.enterButton.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+                
+                el.coverScreen.classList.add('hidden');
+                setTimeout(() => {
+                    el.mainApp.style.display = 'block';
+                }, 800);
+            });
+            
+            el.nextButton.addEventListener('click', () => {
+                currentView === 'main' ? showSecondTable() : (calculateAllActQty(), showMainTable());
+            });
+            
+            el.prevButton.addEventListener('click', showMainTable);
+            
+            el.modeToggle.addEventListener('change', function() {
+                if (!el.container) return;
+                
+                el.container.classList.add('fade-effect');
+                setTimeout(() => {
+                    isNightMode = this.checked;
+                    document.body.classList.toggle('night-mode', isNightMode);
+                    el.pageTitle.innerHTML = `<i class="fas fa-industry"></i> STOCK PRODUKSI ${isNightMode ? 'NIGHT' : 'DAY'}`;
+                    saveCurrentSheetData();
+                    currentSheet = isNightMode ? 2 : 1;
+                    el.daySheet.classList.toggle('active', !isNightMode);
+                    el.nightSheet.classList.toggle('active', isNightMode);
+                    loadSheetData();
+                    el.container.classList.remove('fade-effect');
+                }, 300);
+            });
+            
+            el.daySheet.addEventListener('click', () => {
+                if (isNightMode) {
+                    el.modeToggle.checked = false;
+                    el.modeToggle.dispatchEvent(new Event('change'));
                 }
             });
-            inp.addEventListener('input', validateNumberInput);
-        });
-    }
-
-    function validateNumberInput(e) {
-        e.target.value = e.target.value.replace(/[^0-9]/g, '');
-        const nv = parseInt(e.target.value);
-        if (isNaN(nv) || nv < 0) e.target.value = '';
-        if (nv > 999999) e.target.value = '999999';
-    }
-
-    function handleKeyboard(e) {
-        if (e.ctrlKey && e.key === 's') {
-            e.preventDefault();
-            saveDataToLocalStorage();
-            showToast('Saved with Ctrl+S');
+            
+            el.nightSheet.addEventListener('click', () => {
+                if (!isNightMode) {
+                    el.modeToggle.checked = true;
+                    el.modeToggle.dispatchEvent(new Event('change'));
+                }
+            });
         }
-    }
 
-    function updateProgressBar() {
-        if (!el.progressBar) return;
-        const wh = window.innerHeight;
-        const dh = document.documentElement.scrollHeight;
-        const st = window.pageYOffset || document.documentElement.scrollTop;
-        const sp = (st / (dh - wh)) * 100;
-        el.progressBar.style.width = sp + '%';
-    }
+        function showSecondTable() {
+            if (!el.container || !el.mainTableContainer || !el.secondTableContainer || !el.prevButton || !el.nextButton) return;
+            
+            el.container.classList.add('door-slide');
+            setTimeout(() => {
+                el.mainTableContainer.classList.add('hidden');
+                el.secondTableContainer.classList.remove('hidden');
+                el.prevButton.classList.remove('hidden');
+                el.nextButton.textContent = 'Hitung & Kembali';
+                el.nextButton.className = 'nav-button calculate-button';
+                currentView = 'second';
+                el.container.classList.remove('door-slide');
+            }, 400);
+        }
 
-    async function saveToExcel() {
-        showLoadingIndicator();
-        try {
-            if (!checkXLSXAvailability()) {
-                throw new Error('Library Excel (XLSX) tidak tersedia. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
+        function showMainTable() {
+            if (!el.container || !el.secondTableContainer || !el.mainTableContainer || !el.prevButton || !el.nextButton) return;
+            
+            el.container.classList.add('door-slide');
+            setTimeout(() => {
+                el.secondTableContainer.classList.add('hidden');
+                el.mainTableContainer.classList.remove('hidden');
+                el.prevButton.classList.add('hidden');
+                el.nextButton.textContent = 'Selanjutnya';
+                el.nextButton.className = 'nav-button next-button';
+                updateMainTableActQty();
+                currentView = 'main';
+                el.container.classList.remove('door-slide');
+            }, 400);
+        }
+
+        function calculateActQty(i) {
+            const actBox = parseInt(inputValues.actBox[i] || 0);
+            const actQty = stdrtPack[i] * actBox;
+            actQtyValues[i] = actQty;
+            
+            const cell2 = document.getElementById(`act-qty-2-${i}`);
+            if (cell2) {
+                cell2.textContent = actQty;
+                cell2.classList.toggle('positive', actQty > 0);
+                cell2.classList.toggle('zero', actQty === 0);
             }
-            const wb = XLSX.utils.book_new();
-            const data1 = [['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']];
+            
+            calculateGap(i);
+        }
+
+        function calculateGap(i) {
+            const sa = parseInt(inputValues.stockAwal[i] || 0);
+            const p = parseInt(inputValues.produksi[i] || 0);
+            const s = parseInt(inputValues.surcip[i] || 0);
+            const su = parseInt(inputValues.sunter[i] || 0);
+            const k = parseInt(inputValues.kiic[i] || 0);
+            const aq = actQtyValues[i] || 0;
+            const gap = aq - (sa + p - s - su - k);
+            gapValues[i] = gap;
+            
+            const cell = document.getElementById(`gap-${i}`);
+            if (cell) {
+                cell.textContent = gap;
+                cell.classList.remove('positive', 'negative', 'zero');
+                if (gap > 0) cell.classList.add('positive');
+                else if (gap < 0) cell.classList.add('negative');
+                else cell.classList.add('zero');
+            }
+        }
+
+        function calculateAllActQty() {
+            for (let i = 0; i < N; i++) calculateActQty(i);
+        }
+
+        function updateMainTableActQty() {
             for (let i = 0; i < N; i++) {
-                data1.push([
-                    kodeInject[i],
-                    inputValues.stockAwal[i] || '',
-                    inputValues.produksi[i] || '',
-                    inputValues.surcip[i] || '',
-                    inputValues.sunter[i] || '',
-                    inputValues.kiic[i] || '',
-                    actQtyValues[i] || '',
-                    gapValues[i] || ''
-                ]);
+                const cell = document.getElementById(`act-qty-${i}`);
+                if (cell) {
+                    if (actQtyValues[i] !== undefined) {
+                        cell.textContent = actQtyValues[i];
+                        cell.classList.toggle('positive', actQtyValues[i] > 0);
+                        cell.classList.toggle('zero', actQtyValues[i] === 0);
+                    } else {
+                        cell.textContent = '-';
+                        cell.classList.remove('positive', 'zero');
+                    }
+                }
             }
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(data1), 'Production');
-            const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            const msg = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan file Excel yang telah diunduh._`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-            showToast('Excel disimpan dan siap dibagikan ke WhatsApp!');
-        } catch (e) {
-            console.error('Excel Error:', e);
-            showToast('Gagal menyimpan Excel: ' + (e.message || 'Terjadi kesalahan.'), true);
-        } finally {
-            hideLoadingIndicator();
+            calculateAllGaps();
         }
-    }
 
-    async function shareToWhatsApp() {
-        showLoadingIndicator();
-        try {
-            let st = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A _Otomatis generated_`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(st)}`, '_blank');
-            showToast('Berhasil membagikan ke WhatsApp!');
-        } catch (e) {
-            console.error('WhatsApp Error:', e);
-            showToast('Gagal share ke WhatsApp: ' + (e.message || 'Terjadi kesalahan.'), true);
-        } finally {
-            hideLoadingIndicator();
+        function calculateAllGaps() {
+            for (let i = 0; i < N; i++) calculateGap(i);
         }
-    }
 
-    async function shareAsJpg() {
-        showLoadingIndicator();
-        try {
-            if (typeof html2canvas !== 'function') {
-                throw new Error('html2canvas tidak tersedia. Pastikan library dimuat dengan benar.');
-            }
-            const cont = el.mainTableContainer;
-            if (!cont) {
-                throw new Error('Tabel utama tidak ditemukan untuk konversi ke JPG.');
-            }
-            if (currentView !== 'main') {
-                showMainTable();
-                await new Promise(resolve => setTimeout(resolve, 500));
-            }
-            const clone = cont.cloneNode(true);
-            clone.style.position = 'absolute';
-            clone.style.left = '-9999px';
-            clone.style.overflow = 'visible';
-            clone.style.width = cont.offsetWidth + 'px';
-            clone.style.boxShadow = 'none';
-            clone.style.transform = 'none';
-            document.body.appendChild(clone);
-            let canvas;
+        function updateResultsDisplay() {
+            requestAnimationFrame(() => {
+                for (let i = 0; i < N; i++) {
+                    const aqCell = document.getElementById(`act-qty-${i}`);
+                    if (aqCell && actQtyValues[i] !== undefined) {
+                        aqCell.textContent = actQtyValues[i];
+                        aqCell.classList.toggle('positive', actQtyValues[i] > 0);
+                        aqCell.classList.toggle('zero', actQtyValues[i] === 0);
+                    }
+                    
+                    const gCell = document.getElementById(`gap-${i}`);
+                    if (gCell && gapValues[i] !== undefined) {
+                        gCell.textContent = gapValues[i];
+                        gCell.classList.remove('positive', 'negative', 'zero');
+                        if (gapValues[i] > 0) gCell.classList.add('positive');
+                        else if (gapValues[i] < 0) gCell.classList.add('negative');
+                        else gCell.classList.add('zero');
+                    }
+                }
+            });
+        }
+
+        function saveDataToLocalStorage() {
             try {
-                canvas = await html2canvas(clone, {
-                    backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
-                    scale: 2,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: false,
-                    foreignObjectRendering: true,
-                    windowWidth: cont.offsetWidth,
-                    windowHeight: cont.offsetHeight
+                saveCurrentSheetData();
+                const data = { sheetsData, lastSaved: new Date().toISOString() };
+                localStorage.setItem('productionData', JSON.stringify(data));
+                return true;
+            } catch (e) {
+                console.error('LocalStorage Error:', e);
+                showToast('Gagal menyimpan data: Storage mungkin penuh. Coba hapus data browser.', true);
+                return false;
+            }
+        }
+
+        function loadDataFromLocalStorage() {
+            try {
+                const storedData = localStorage.getItem('productionData');
+                if (storedData) {
+                    const parsedData = JSON.parse(storedData);
+                    if (parsedData.sheetsData) {
+                        sheetsData = parsedData.sheetsData;
+                        loadSheetData();
+                        showToast('Data dimuat dari penyimpanan lokal.');
+                    }
+                }
+            } catch (e) {
+                console.error('LocalStorage Load Error:', e);
+                showToast('Gagal memuat data dari penyimpanan lokal.', true);
+            }
+        }
+
+        function saveCurrentSheetData() {
+            sheetsData[currentSheet] = {
+                inputValues: JSON.parse(JSON.stringify(inputValues)),
+                actQtyValues: { ...actQtyValues },
+                gapValues: { ...gapValues }
+            };
+        }
+
+        function loadSheetData() {
+            if (sheetsData[currentSheet]) {
+                inputValues = JSON.parse(JSON.stringify(sheetsData[currentSheet].inputValues || {}));
+                actQtyValues = { ...sheetsData[currentSheet].actQtyValues };
+                gapValues = { ...sheetsData[currentSheet].gapValues };
+                initializeTables();
+            } else {
+                resetData();
+            }
+        }
+
+        function resetData() {
+            inputValues = {
+                stockAwal: {},
+                produksi: {},
+                surcip: {},
+                sunter: {},
+                kiic: {},
+                actBox: {}
+            };
+            actQtyValues = {};
+            gapValues = {};
+            initializeTables();
+        }
+
+        function setupAutoSave() {
+            if (autoSaveInterval) clearInterval(autoSaveInterval);
+            autoSaveInterval = setInterval(() => {
+                if (saveDataToLocalStorage()) {
+                    showStatusIndicator('Data tersimpan otomatis', 2000);
+                }
+            }, 30000);
+        }
+
+        function debounceSave() {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                if (saveDataToLocalStorage()) {
+                    showStatusIndicator('Data tersimpan', 1500);
+                }
+            }, 2000);
+        }
+
+        function showStatusIndicator(message, duration = 2000) {
+            if (!el.statusIndicator) return;
+            el.statusIndicator.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            el.statusIndicator.style.display = 'block';
+            setTimeout(() => el.statusIndicator.style.display = 'none', duration);
+        }
+
+        function showToast(message, isError = false) {
+            if (!el.toast) return;
+            el.toast.innerHTML = `<i class="fas ${isError ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> ${message}`;
+            el.toast.className = `toast ${isError ? 'error' : ''}`;
+            el.toast.style.display = 'block';
+            setTimeout(() => el.toast.style.display = 'none', 3000);
+        }
+
+        function showLoadingIndicator() {
+            if (!el.loadingIndicator) return;
+            el.loadingIndicator.style.display = 'block';
+        }
+
+        function hideLoadingIndicator() {
+            if (!el.loadingIndicator) return;
+            el.loadingIndicator.style.display = 'none';
+        }
+
+        function showModal() {
+            if (!el.confirmationModal) return;
+            el.confirmationModal.classList.add('active');
+        }
+
+        function closeModal() {
+            if (!el.confirmationModal) return;
+            el.confirmationModal.classList.remove('active');
+        }
+
+        function confirmReset() {
+            const msgEl = document.getElementById('modalMessage');
+            if (msgEl) {
+                msgEl.textContent = "Apakah Anda yakin ingin mereset semua data? Tindakan ini tidak dapat dibatalkan.";
+            }
+            showModal();
+        }
+
+        function performReset() {
+            resetData();
+            closeModal();
+            showToast('Data telah direset.');
+        }
+
+        function setupInputNavigation() {
+            const inputs = document.querySelectorAll('input[type="number"]');
+            inputs.forEach((input, index) => {
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const nextIndex = (index + 1) % inputs.length;
+                        inputs[nextIndex].focus();
+                    }
+                });
+                input.addEventListener('input', validateNumberInput);
+            });
+        }
+
+        function validateNumberInput(e) {
+            const input = e.target;
+            let value = input.value.replace(/[^0-9]/g, '');
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            const num = parseInt(value);
+            const max = parseInt(input.max) || 999999;
+            input.value = Math.min(num, max).toString();
+        }
+
+        function handleKeyboard(e) {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                if (saveDataToLocalStorage()) {
+                    showToast('Data disimpan dengan Ctrl+S.');
+                }
+            }
+        }
+
+        function updateProgressBar() {
+            if (!el.progressBar) return;
+            const winHeight = window.innerHeight;
+            const docHeight = document.documentElement.scrollHeight;
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollPercent = (scrollTop / (docHeight - winHeight)) * 100;
+            el.progressBar.style.width = scrollPercent + '%';
+        }
+
+        // Load SheetJS library
+        async function loadSheetJSLibrary(maxRetries = 3, retryDelay = 1000) {
+            const cdnSources = [
+                'https://cdn.sheetjs.com/xlsx-latest/xlsx.full.min.js',
+                'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.3/xlsx.full.min.js',
+                'https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js'
+            ];
+
+            async function tryLoadCDN(url) {
+                return new Promise((resolve, reject) => {
+                    const script = document.createElement('script');
+                    script.src = url;
+                    script.crossOrigin = 'anonymous';
+                    script.async = true;
+                    script.onload = () => {
+                        if (typeof XLSX !== 'undefined') {
+                            resolve(true);
+                        } else {
+                            reject(new Error('SheetJS failed to initialize from ' + url));
+                        }
+                    };
+                    script.onerror = () => reject(new Error('Failed to load SheetJS from ' + url));
+                    document.head.appendChild(script);
+                });
+            }
+
+            async function loadWithRetry() {
+                for (let source of cdnSources) {
+                    for (let attempt = 0; attempt < maxRetries; attempt++) {
+                        try {
+                            console.log(`Attempting to load SheetJS from ${source}, attempt ${attempt + 1}`);
+                            await tryLoadCDN(source);
+                            console.log(`SheetJS loaded successfully from ${source}`);
+                            return true;
+                        } catch (e) {
+                            console.error(e.message);
+                            if (attempt < maxRetries - 1) {
+                                await new Promise(resolve => setTimeout(resolve, retryDelay));
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            try {
+                const success = await loadWithRetry();
+                if (success) {
+                    updateExcelButtons(true);
+                    return true;
+                }
+                console.warn('All CDN attempts failed, attempting local fallback');
+                // Fallback to local version if CDN fails
+                const localSheetJS = 'https://cdn.jsdelivr.net/npm/xlsx@0.20.3/dist/xlsx.full.min.js';
+                const script = document.createElement('script');
+                script.src = localSheetJS;
+                return new Promise((resolve) => {
+                    script.onload = () => {
+                        console.log('Local SheetJS fallback loaded');
+                        updateExcelButtons(typeof XLSX !== 'undefined');
+                        resolve(typeof XLSX !== 'undefined');
+                    };
+                    script.onerror = () => {
+                        console.error('Failed to load local SheetJS fallback');
+                        updateExcelButtons(false);
+                        resolve(false);
+                    };
+                    document.head.appendChild(script);
                 });
             } catch (e) {
-                console.warn('Initial html2canvas failed, retrying with fallback options:', e);
-                canvas = await html2canvas(clone, {
-                    backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
-                    scale: 1,
-                    useCORS: true,
-                    logging: false,
-                    allowTaint: false,
-                    foreignObjectRendering: false,
-                    windowWidth: cont.offsetWidth,
-                    windowHeight: cont.offsetHeight
-                });
+                console.error('Unexpected error loading SheetJS:', e);
+                updateExcelButtons(false);
+                showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
+                return false;
             }
-            document.body.removeChild(clone);
-            const img = canvas.toDataURL('image/jpeg', 0.95);
-            const lnk = document.createElement('a');
-            const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
-            lnk.download = fileName;
-            lnk.href = img;
-            lnk.click();
-            const msg = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan gambar JPG yang telah diunduh._`;
-            window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-            showToast('JPG disimpan dan siap dibagikan ke WhatsApp!');
-        } catch (e) {
-            console.error('html2canvas Error:', e);
-            showToast('Gagal membuat JPG: ' + (e.message || 'Operasi tidak didukung oleh browser.'), true);
-        } finally {
-            hideLoadingIndicator();
         }
-    }
 
-    async function importExcel(files) {
-        if (!files || files.length === 0) {
-            showToast('Tidak ada file yang dipilih.', true);
-            return;
-        }
-        showLoadingIndicator();
-        try {
-            if (!checkXLSXAvailability()) {
-                throw new Error('Library Excel (XLSX) tidak tersedia. Pastikan koneksi internet stabil atau coba muat ulang halaman.');
+        function updateExcelButtons(isLoaded) {
+            const saveButton = document.getElementById('saveExcelButton');
+            const importButton = document.getElementById('importExcelButton');
+            if (saveButton && importButton) {
+                saveButton.disabled = !isLoaded;
+                importButton.disabled = !isLoaded;
+                saveButton.title = isLoaded ? 'Save to Excel and Share' : 'Excel library not loaded';
+                importButton.title = isLoaded ? 'Import Excel' : 'Excel library not loaded';
             }
-            const reader = new FileReader();
-            reader.onload = async e => {
+        }
+
+        function checkXLSXAvailability() {
+            if (typeof XLSX === 'undefined') {
+                console.error('XLSX library is not loaded.');
+                showToast('Library Excel tidak tersedia. Silakan muat ulang halaman.', true);
+                return false;
+            }
+            return true;
+        }
+
+        function checkHtml2CanvasAvailability() {
+            if (typeof html2canvas === 'undefined') {
+                console.error('html2canvas library is not loaded.');
+                showToast('Library untuk konversi JPG tidak tersedia. Silakan muat ulang halaman.', true);
+                return false;
+            }
+            return true;
+        }
+
+        async function saveToExcel() {
+            showLoadingIndicator();
+            try {
+                if (!checkXLSXAvailability()) {
+                    throw new Error('Library Excel tidak tersedia. Silakan muat ulang halaman atau periksa koneksi internet.');
+                }
+                const wb = XLSX.utils.book_new();
+                const data1 = [['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']];
+                for (let i = 0; i < N; i++) {
+                    data1.push([
+                        kodeInject[i],
+                        inputValues.stockAwal[i] || '',
+                        inputValues.produksi[i] || '',
+                        inputValues.surcip[i] || '',
+                        inputValues.sunter[i] || '',
+                        inputValues.kiic[i] || '',
+                        actQtyValues[i] || '',
+                        gapValues[i] || ''
+                    ]);
+                }
+                const ws1 = XLSX.utils.aoa_to_sheet(data1);
+                XLSX.utils.book_append_sheet(wb, ws1, 'Production');
+                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
+                XLSX.writeFile(wb, fileName);
+                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan file Excel yang telah diunduh._`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                showToast('Excel disimpan dan siap dibagikan ke WhatsApp.');
+            } catch (e) {
+                console.error('Save Excel Error:', e);
+                showToast(`Gagal menyimpan Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
+            } finally {
+                hideLoadingIndicator();
+            }
+        }
+
+        async function shareToWhatsApp() {
+            showLoadingIndicator();
+            try {
+                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A _Otomatis generated_`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                showToast('Berhasil membagikan ke WhatsApp.');
+            } catch (e) {
+                console.error('WhatsApp Share Error:', e);
+                showToast(`Gagal membagikan ke WhatsApp: ${e.message || 'Terjadi kesalahan.'}`, true);
+            } finally {
+                hideLoadingIndicator();
+            }
+        }
+
+        async function shareAsJpg() {
+            showLoadingIndicator();
+            try {
+                if (!checkHtml2CanvasAvailability()) {
+                    throw new Error('Library html2canvas tidak tersedia.');
+                }
+                if (!el.mainTableContainer) {
+                    throw new Error('Tabel utama tidak ditemukan.');
+                }
+                if (currentView !== 'main') {
+                    showMainTable();
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                const clone = el.mainTableContainer.cloneNode(true);
+                clone.style.position = 'absolute';
+                clone.style.left = '-9999px';
+                clone.style.overflow = 'visible';
+                clone.style.width = el.mainTableContainer.offsetWidth + 'px';
+                clone.style.boxShadow = 'none';
+                document.body.appendChild(clone);
+                let canvas;
                 try {
-                    const data = new Uint8Array(e.target.result);
-                    let wb;
-                    try {
-                        wb = XLSX.read(data, { type: 'array' });
-                    } catch (e) {
-                        throw new Error('File Excel tidak valid atau rusak.');
-                    }
-                    if (!wb.SheetNames || wb.SheetNames.length < 1) {
-                        throw new Error('File Excel tidak memiliki sheet yang valid.');
-                    }
-                    const ws = wb.Sheets[wb.SheetNames[0]];
-                    const ws2 = wb.SheetNames[1] ? wb.Sheets[wb.SheetNames[1]] : null;
-                    const json = ws ? XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) : [];
-                    const json2 = ws2 ? XLSX.utils.sheet_to_json(ws2, { header: 1, defval: '' }) : [];
-                    const expectedHeaders = ['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
-                    const expectedHeaders2 = ['KODE INJECT', 'STDRT PACK', 'ACT /BOX', 'ACT QTY'];
-                    const headers = json[0] && Array.isArray(json[0]) && json[0].length > 0 ? json[0].map(h => h.toString().trim()) : [];
-                    if (!headers.length) {
-                        throw new Error('Sheet pertama tidak memiliki header yang valid.');
-                    }
-                    const headerMap = {};
-                    headers.forEach((header, index) => {
-                        headerMap[header.toUpperCase()] = index;
+                    canvas = await html2canvas(clone, {
+                        backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
+                        scale: window.devicePixelRatio > 1 ? 2 : 1,
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: false,
+                        foreignObjectRendering: true,
+                        windowWidth: el.mainTableContainer.offsetWidth,
+                        windowHeight: el.mainTableContainer.offsetHeight
                     });
-                    const missingHeaders = expectedHeaders.filter(h => !(h.toUpperCase() in headerMap));
-                    if (missingHeaders.length > 0) {
-                        throw new Error(`Header tidak ditemukan di sheet pertama: ${missingHeaders.join(', ')}.`);
-                    }
-                    let headerMap2 = {};
-                    let headers2 = [];
-                    if (ws2 && json2[0] && Array.isArray(json2[0]) && json2[0].length > 0) {
-                        headers2 = json2[0].map(h => h.toString().trim());
-                        headers2.forEach((header, index) => {
-                            headerMap2[header.toUpperCase()] = index;
-                        });
-                        const missingHeaders2 = expectedHeaders2.filter(h => !(h.toUpperCase() in headerMap2));
-                        if (missingHeaders2.length > 0) {
-                            throw new Error(`Header tidak ditemukan di sheet kedua: ${missingHeaders2.join(', ')}.`);
+                } catch (e) {
+                    console.warn('Initial html2canvas failed, retrying with fallback:', e);
+                    canvas = await html2canvas(clone, {
+                        backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
+                        scale: 1,
+                        useCORS: true,
+                        logging: false,
+                        allowTaint: false,
+                        foreignObjectRendering: false
+                    });
+                } finally {
+                    document.body.removeChild(clone);
+                }
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                const link = document.createElement('a');
+                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+                link.download = fileName;
+                link.href = imgData;
+                link.click();
+                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan gambar JPG yang telah diunduh._`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                showToast('JPG disimpan dan siap dibagikan ke WhatsApp.');
+            } catch (e) {
+                console.error('Share JPG Error:', e);
+                showToast(`Gagal membuat JPG: ${e.message || 'Operasi tidak didukung oleh browser.'}`, true);
+            } finally {
+                hideLoadingIndicator();
+            }
+        }
+
+        async function importExcel(files) {
+            if (!files || files.length === 0) {
+                showToast('Tidak ada file yang dipilih.', true);
+                return;
+            }
+            showLoadingIndicator();
+            try {
+                if (!checkXLSXAvailability()) {
+                    throw new Error('Library Excel tidak tersedia. Silakan muat ulang halaman.');
+                }
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        let workbook;
+                        try {
+                            workbook = XLSX.read(data, { type: 'array' });
+                        } catch (e) {
+                            throw new Error('File Excel tidak valid atau rusak.');
                         }
-                    } else if (ws2) {
-                        throw new Error('Sheet kedua tidak memiliki header yang valid.');
-                    }
-                    inputValues = {
-                        stockAwal: {},
-                        produksi: {},
-                        surcip: {},
-                        sunter: {},
-                        kiic: {},
-                        actBox: {}
-                    };
-                    actQtyValues = {};
-                    gapValues = {};
-                    let validRows = 0;
-                    for (let i = 1; i < json.length; i++) {
-                        const row = json[i];
-                        if (!row || !row[headerMap['KODE INJECT']] || row[headerMap['KODE INJECT']] === '') continue;
-                        const kode = row[headerMap['KODE INJECT']].toString().trim();
-                        const idx = kodeInject.indexOf(kode);
-                        if (idx === -1) continue;
-                        inputValues.stockAwal[idx] = row[headerMap['STOCK AWAL']] !== undefined && row[headerMap['STOCK AWAL']] !== '' ? Math.round(Number(row[headerMap['STOCK AWAL']])).toString() : '';
-                        inputValues.produksi[idx] = row[headerMap['PRODUKSI']] !== undefined && row[headerMap['PRODUKSI']] !== '' ? Math.round(Number(row[headerMap['PRODUKSI']])).toString() : '';
-                        inputValues.surcip[idx] = row[headerMap['SURCIP']] !== undefined && row[headerMap['SURCIP']] !== '' ? Math.round(Number(row[headerMap['SURCIP']])).toString() : '';
-                        inputValues.sunter[idx] = row[headerMap['SUNTER']] !== undefined && row[headerMap['SUNTER']] !== '' ? Math.round(Number(row[headerMap['SUNTER']])).toString() : '';
-                        inputValues.kiic[idx] = row[headerMap['KIIC']] !== undefined && row[headerMap['KIIC']] !== '' ? Math.round(Number(row[headerMap['KIIC']])).toString() : '';
-                        actQtyValues[idx] = row[headerMap['ACT QTY']] !== undefined && row[headerMap['ACT QTY']] !== '' ? Math.round(Number(row[headerMap['ACT QTY']])) : '';
-                        gapValues[idx] = row[headerMap['GAP']] !== undefined && row[headerMap['GAP']] !== '' ? Math.round(Number(row[headerMap['GAP']])) : '';
-                        validRows++;
-                    }
-                    if (ws2) {
-                        for (let i = 1; i < json2.length; i++) {
-                            const row = json2[i];
-                            if (!row || !row[headerMap2['KODE INJECT']] || row[headerMap2['KODE INJECT']] === '') continue;
-                            const kode = row[headerMap2['KODE INJECT']].toString().trim();
+                        if (!workbook.SheetNames.length) {
+                            throw new Error('File Excel tidak memiliki sheet.');
+                        }
+                        const ws = workbook.Sheets[workbook.SheetNames[0]];
+                        const ws2 = workbook.SheetNames[1] ? workbook.Sheets[workbook.SheetNames[1]] : null;
+                        const json = ws ? XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) : [];
+                        const json2 = ws2 ? XLSX.utils.sheet_to_json(ws2, { header: 1, defval: '' }) : [];
+                        const expectedHeaders = ['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
+                        const expectedHeaders2 = ['KODE INJECT', 'STDRT PACK', 'ACT /BOX', 'ACT QTY'];
+                        const headers = json[0]?.map(h => h.toString().trim().toUpperCase()) || [];
+                        if (!headers.length) {
+                            throw new Error('Sheet pertama tidak memiliki header yang valid.');
+                        }
+                        const headerMap = {};
+                        headers.forEach((header, index) => headerMap[header] = index);
+                        const missingHeaders = expectedHeaders.filter(h => !headerMap[h.toUpperCase()]);
+                        if (missingHeaders.length) {
+                            throw new Error(`Header tidak ditemukan di sheet pertama: ${missingHeaders.join(', ')}.`);
+                        }
+                        let headerMap2 = {};
+                        let headers2 = [];
+                        if (ws2) {
+                            headers2 = json2[0]?.map(h => h.toString().trim().toUpperCase()) || [];
+                            if (!headers2.length) {
+                                throw new Error('Sheet kedua tidak memiliki header yang valid.');
+                            }
+                            headers2.forEach((header, index) => headerMap2[header] = index);
+                            const missingHeaders2 = expectedHeaders2.filter(h => !headerMap2[h.toUpperCase()]);
+                            if (missingHeaders2.length) {
+                                throw new Error(`Header tidak ditemukan di sheet kedua: ${missingHeaders2.join(', ')}.`);
+                            }
+                        }
+                        inputValues = {
+                            stockAwal: {},
+                            produksi: {},
+                            surcip: {},
+                            sunter: {},
+                            kiic: {},
+                            actBox: {}
+                        };
+                        actQtyValues = {};
+                        gapValues = {};
+                        let validRows = 0;
+                        for (let i = 1; i < json.length; i++) {
+                            const row = json[i];
+                            if (!row || !row[headerMap['KODE INJECT']]) continue;
+                            const kode = row[headerMap['KODE INJECT']].toString().trim();
                             const idx = kodeInject.indexOf(kode);
                             if (idx === -1) continue;
-                            inputValues.actBox[idx] = row[headerMap2['ACT /BOX']] !== undefined && row[headerMap2['ACT /BOX']] !== '' ? Math.round(Number(row[headerMap2['ACT /BOX']])).toString() : '';
-                            if (row[headerMap2['ACT QTY']] !== undefined && row[headerMap2['ACT QTY']] !== '') {
-                                actQtyValues[idx] = Math.round(Number(row[headerMap2['ACT QTY']]));
-                            }
+                            const fields = ['STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
+                            fields.forEach(field => {
+                                const value = row[headerMap[field]];
+                                if (value !== undefined && value !== '') {
+                                    const num = Math.round(Number(value));
+                                    if (!isNaN(num) && num >= 0 && num <= 999999) {
+                                        if (field === 'ACT QTY') {
+                                            actQtyValues[idx] = num;
+                                        } else if (field === 'GAP') {
+                                            gapValues[idx] = num;
+                                        } else {
+                                            inputValues[field.toLowerCase().replace(' ', '')][idx] = num.toString();
+                                        }
+                                    }
+                                }
+                            });
                             validRows++;
                         }
+                        if (ws2) {
+                            for (let i = 1; i < json2.length; i++) {
+                                const row = json2[i];
+                                if (!row || !row[headerMap2['KODE INJECT']]) continue;
+                                const kode = row[headerMap2['KODE INJECT']].toString().trim();
+                                const idx = kodeInject.indexOf(kode);
+                                if (idx === -1) continue;
+                                const actBox = row[headerMap2['ACT /BOX']];
+                                if (actBox !== undefined && actBox !== '') {
+                                    const num = Math.round(Number(actBox));
+                                    if (!isNaN(num) && num >= 0 && num <= 9999) {
+                                        inputValues.actBox[idx] = num.toString();
+                                    }
+                                }
+                                const actQty = row[headerMap2['ACT QTY']];
+                                if (actQty !== undefined && actQty !== '') {
+                                    const num = Math.round(Number(actQty));
+                                    if (!isNaN(num) && num >= 0) {
+                                        actQtyValues[idx] = num;
+                                    }
+                                }
+                                validRows++;
+                            }
+                        }
+                        if (validRows === 0) {
+                            throw new Error('Tidak ada data valid yang ditemukan di file Excel.');
+                        }
+                        initializeTables();
+                        saveCurrentSheetData();
+                        saveDataToLocalStorage();
+                        showToast(`Berhasil mengimpor ${validRows} baris data.`);
+                    } catch (e) {
+                        console.error('Import Excel Error:', e);
+                        showToast(`Gagal mengimpor Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
+                    } finally {
+                        hideLoadingIndicator();
+                        el.fileInput.value = '';
                     }
-                    if (validRows === 0) {
-                        throw new Error('Tidak ada data valid yang ditemukan di file Excel.');
-                    }
-                    initializeTables();
-                    saveCurrentSheetData();
-                    showToast(`Import berhasil, ${validRows} baris diproses.`);
-                } catch (e) {
-                    console.error('Import Excel Error:', e);
-                    showToast(`Gagal import: ${e.message || 'Terjadi kesalahan saat memproses file Excel.'}`, true);
-                } finally {
+                };
+                reader.onerror = () => {
+                    showToast('Gagal membaca file Excel.', true);
                     hideLoadingIndicator();
-                    el.fileInput.value = '';
-                }
-            };
-            reader.onerror = () => {
-                showToast('Gagal membaca file Excel.', true);
+                };
+                reader.readAsArrayBuffer(files[0]);
+            } catch (e) {
+                console.error('Import Excel Error:', e);
+                showToast(`Gagal mengimpor Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
                 hideLoadingIndicator();
-            };
-            reader.readAsArrayBuffer(files[0]);
-        } catch (e) {
-            console.error('Import Excel Error:', e);
-            showToast('Gagal import: ' + (e.message || 'Terjadi kesalahan.'), true);
-            hideLoadingIndicator();
+                el.fileInput.value = '';
+            }
         }
-    }
 
-    // Ensure initialization after all scripts are loaded
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            // Check if XLSX and html2canvas are loaded
-            if (typeof XLSX === 'undefined') {
-                console.error('XLSX library failed to load.');
-                showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
+        // Initialize the application after loading dependencies
+        document.addEventListener('DOMContentLoaded', async () => {
+            const sheetJSSuccess = await loadSheetJSLibrary();
+            if (!sheetJSSuccess) {
+                showToast('Gagal memuat library Excel. Fitur Excel dinonaktifkan.', true);
             }
             if (typeof html2canvas === 'undefined') {
-                console.error('html2canvas library failed to load.');
-                showToast('Gagal memuat library untuk konversi JPG. Silakan muat ulang halaman.', true);
+                showToast('Gagal memuat library html2canvas. Fitur JPG dinonaktifkan.', true);
             }
             init();
         });
-    } else {
-        if (typeof XLSX === 'undefined') {
-            console.error('XLSX library failed to load.');
-            showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
-        }
-        if (typeof html2canvas === 'undefined') {
-            console.error('html2canvas library failed to load.');
-            showToast('Gagal memuat library untuk konversi JPG. Silakan muat ulang halaman.', true);
-        }
-        init();
-    }
-</script>
+    </script>
+</body>
+</html>
