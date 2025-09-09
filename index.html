@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PT Fuji Seat Indonesia - Laporan Produksi</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" integrity="sha512-BNaRQnYJYiPSqHHDb58B0yaPfCu+Wgds8Gp/gU33kqBtgNS4tSPHuGibyoeqMVaG2pfmKGx2L2ZAiPf4EKOrH4A==" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --primary: #3498db;
@@ -1427,373 +1428,188 @@
             el.progressBar.style.width = scrollPercent + '%';
         }
 
-        // Load SheetJS library
-        async function loadSheetJSLibrary(maxRetries = 3, retryDelay = 1000) {
-            const cdnSources = [
-                'https://cdn.sheetjs.com/xlsx-latest/xlsx.full.min.js',
-                'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.20.3/xlsx.full.min.js',
-                'https://unpkg.com/xlsx@latest/dist/xlsx.full.min.js'
-            ];
-
-            async function tryLoadCDN(url) {
-                return new Promise((resolve, reject) => {
-                    const script = document.createElement('script');
-                    script.src = url;
-                    script.crossOrigin = 'anonymous';
-                    script.async = true;
-                    script.onload = () => {
-                        if (typeof XLSX !== 'undefined') {
-                            resolve(true);
-                        } else {
-                            reject(new Error('SheetJS failed to initialize from ' + url));
-                        }
-                    };
-                    script.onerror = () => reject(new Error('Failed to load SheetJS from ' + url));
-                    document.head.appendChild(script);
-                });
-            }
-
-            async function loadWithRetry() {
-                for (let source of cdnSources) {
-                    for (let attempt = 0; attempt < maxRetries; attempt++) {
-                        try {
-                            console.log(`Attempting to load SheetJS from ${source}, attempt ${attempt + 1}`);
-                            await tryLoadCDN(source);
-                            console.log(`SheetJS loaded successfully from ${source}`);
-                            return true;
-                        } catch (e) {
-                            console.error(e.message);
-                            if (attempt < maxRetries - 1) {
-                                await new Promise(resolve => setTimeout(resolve, retryDelay));
-                            }
-                        }
-                    }
-                }
-                return false;
-            }
-
-            try {
-                const success = await loadWithRetry();
-                if (success) {
-                    updateExcelButtons(true);
-                    return true;
-                }
-                console.warn('All CDN attempts failed, attempting local fallback');
-                // Fallback to local version if CDN fails
-                const localSheetJS = 'https://cdn.jsdelivr.net/npm/xlsx@0.20.3/dist/xlsx.full.min.js';
-                const script = document.createElement('script');
-                script.src = localSheetJS;
-                return new Promise((resolve) => {
-                    script.onload = () => {
-                        console.log('Local SheetJS fallback loaded');
-                        updateExcelButtons(typeof XLSX !== 'undefined');
-                        resolve(typeof XLSX !== 'undefined');
-                    };
-                    script.onerror = () => {
-                        console.error('Failed to load local SheetJS fallback');
-                        updateExcelButtons(false);
-                        resolve(false);
-                    };
-                    document.head.appendChild(script);
-                });
-            } catch (e) {
-                console.error('Unexpected error loading SheetJS:', e);
-                updateExcelButtons(false);
-                showToast('Gagal memuat library Excel. Silakan muat ulang halaman.', true);
-                return false;
-            }
-        }
-
-        function updateExcelButtons(isLoaded) {
-            const saveButton = document.getElementById('saveExcelButton');
-            const importButton = document.getElementById('importExcelButton');
-            if (saveButton && importButton) {
-                saveButton.disabled = !isLoaded;
-                importButton.disabled = !isLoaded;
-                saveButton.title = isLoaded ? 'Save to Excel and Share' : 'Excel library not loaded';
-                importButton.title = isLoaded ? 'Import Excel' : 'Excel library not loaded';
-            }
-        }
-
-        function checkXLSXAvailability() {
-            if (typeof XLSX === 'undefined') {
-                console.error('XLSX library is not loaded.');
-                showToast('Library Excel tidak tersedia. Silakan muat ulang halaman.', true);
-                return false;
-            }
-            return true;
-        }
-
-        function checkHtml2CanvasAvailability() {
-            if (typeof html2canvas === 'undefined') {
-                console.error('html2canvas library is not loaded.');
-                showToast('Library untuk konversi JPG tidak tersedia. Silakan muat ulang halaman.', true);
-                return false;
-            }
-            return true;
-        }
-
-        async function saveToExcel() {
-            showLoadingIndicator();
-            try {
-                if (!checkXLSXAvailability()) {
-                    throw new Error('Library Excel tidak tersedia. Silakan muat ulang halaman atau periksa koneksi internet.');
-                }
-                const wb = XLSX.utils.book_new();
-                const data1 = [['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP']];
-                for (let i = 0; i < N; i++) {
-                    data1.push([
-                        kodeInject[i],
-                        inputValues.stockAwal[i] || '',
-                        inputValues.produksi[i] || '',
-                        inputValues.surcip[i] || '',
-                        inputValues.sunter[i] || '',
-                        inputValues.kiic[i] || '',
-                        actQtyValues[i] || '',
-                        gapValues[i] || ''
-                    ]);
-                }
-                const ws1 = XLSX.utils.aoa_to_sheet(data1);
-                XLSX.utils.book_append_sheet(wb, ws1, 'Production');
-                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.xlsx`;
-                XLSX.writeFile(wb, fileName);
-                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan file Excel yang telah diunduh._`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                showToast('Excel disimpan dan siap dibagikan ke WhatsApp.');
-            } catch (e) {
-                console.error('Save Excel Error:', e);
-                showToast(`Gagal menyimpan Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
-            } finally {
-                hideLoadingIndicator();
-            }
-        }
-
-        async function shareToWhatsApp() {
-            showLoadingIndicator();
-            try {
-                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A _Otomatis generated_`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                showToast('Berhasil membagikan ke WhatsApp.');
-            } catch (e) {
-                console.error('WhatsApp Share Error:', e);
-                showToast(`Gagal membagikan ke WhatsApp: ${e.message || 'Terjadi kesalahan.'}`, true);
-            } finally {
-                hideLoadingIndicator();
-            }
-        }
-
-        async function shareAsJpg() {
-            showLoadingIndicator();
-            try {
-                if (!checkHtml2CanvasAvailability()) {
-                    throw new Error('Library html2canvas tidak tersedia.');
-                }
-                if (!el.mainTableContainer) {
-                    throw new Error('Tabel utama tidak ditemukan.');
-                }
-                if (currentView !== 'main') {
-                    showMainTable();
-                    await new Promise(resolve => setTimeout(resolve, 500));
-                }
-                const clone = el.mainTableContainer.cloneNode(true);
-                clone.style.position = 'absolute';
-                clone.style.left = '-9999px';
-                clone.style.overflow = 'visible';
-                clone.style.width = el.mainTableContainer.offsetWidth + 'px';
-                clone.style.boxShadow = 'none';
-                document.body.appendChild(clone);
-                let canvas;
-                try {
-                    canvas = await html2canvas(clone, {
-                        backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
-                        scale: window.devicePixelRatio > 1 ? 2 : 1,
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: false,
-                        foreignObjectRendering: true,
-                        windowWidth: el.mainTableContainer.offsetWidth,
-                        windowHeight: el.mainTableContainer.offsetHeight
-                    });
-                } catch (e) {
-                    console.warn('Initial html2canvas failed, retrying with fallback:', e);
-                    canvas = await html2canvas(clone, {
-                        backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
-                        scale: 1,
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: false,
-                        foreignObjectRendering: false
-                    });
-                } finally {
-                    document.body.removeChild(clone);
-                }
-                const imgData = canvas.toDataURL('image/jpeg', 0.95);
-                const link = document.createElement('a');
-                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
-                link.download = fileName;
-                link.href = imgData;
-                link.click();
-                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A Tanggal: ${el.currentDate.textContent}%0A File: ${fileName}%0A%0A _Silakan lampirkan gambar JPG yang telah diunduh._`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
-                showToast('JPG disimpan dan siap dibagikan ke WhatsApp.');
-            } catch (e) {
-                console.error('Share JPG Error:', e);
-                showToast(`Gagal membuat JPG: ${e.message || 'Operasi tidak didukung oleh browser.'}`, true);
-            } finally {
-                hideLoadingIndicator();
-            }
-        }
-
+        // Fungsi Import Excel yang Diperbaiki
         async function importExcel(files) {
             if (!files || files.length === 0) {
                 showToast('Tidak ada file yang dipilih.', true);
                 return;
             }
+            
             showLoadingIndicator();
+            
             try {
-                if (!checkXLSXAvailability()) {
-                    throw new Error('Library Excel tidak tersedia. Silakan muat ulang halaman.');
-                }
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    try {
-                        const data = new Uint8Array(e.target.result);
-                        let workbook;
-                        try {
-                            workbook = XLSX.read(data, { type: 'array' });
-                        } catch (e) {
-                            throw new Error('File Excel tidak valid atau rusak.');
-                        }
-                        if (!workbook.SheetNames.length) {
-                            throw new Error('File Excel tidak memiliki sheet.');
-                        }
-                        const ws = workbook.Sheets[workbook.SheetNames[0]];
-                        const ws2 = workbook.SheetNames[1] ? workbook.Sheets[workbook.SheetNames[1]] : null;
-                        const json = ws ? XLSX.utils.sheet_to_json(ws, { header: 1, defval: '' }) : [];
-                        const json2 = ws2 ? XLSX.utils.sheet_to_json(ws2, { header: 1, defval: '' }) : [];
-                        const expectedHeaders = ['KODE INJECT', 'STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
-                        const expectedHeaders2 = ['KODE INJECT', 'STDRT PACK', 'ACT /BOX', 'ACT QTY'];
-                        const headers = json[0]?.map(h => h.toString().trim().toUpperCase()) || [];
-                        if (!headers.length) {
-                            throw new Error('Sheet pertama tidak memiliki header yang valid.');
-                        }
-                        const headerMap = {};
-                        headers.forEach((header, index) => headerMap[header] = index);
-                        const missingHeaders = expectedHeaders.filter(h => !headerMap[h.toUpperCase()]);
-                        if (missingHeaders.length) {
-                            throw new Error(`Header tidak ditemukan di sheet pertama: ${missingHeaders.join(', ')}.`);
-                        }
-                        let headerMap2 = {};
-                        let headers2 = [];
-                        if (ws2) {
-                            headers2 = json2[0]?.map(h => h.toString().trim().toUpperCase()) || [];
-                            if (!headers2.length) {
-                                throw new Error('Sheet kedua tidak memiliki header yang valid.');
-                            }
-                            headers2.forEach((header, index) => headerMap2[header] = index);
-                            const missingHeaders2 = expectedHeaders2.filter(h => !headerMap2[h.toUpperCase()]);
-                            if (missingHeaders2.length) {
-                                throw new Error(`Header tidak ditemukan di sheet kedua: ${missingHeaders2.join(', ')}.`);
-                            }
-                        }
-                        inputValues = {
-                            stockAwal: {},
-                            produksi: {},
-                            surcip: {},
-                            sunter: {},
-                            kiic: {},
-                            actBox: {}
-                        };
-                        actQtyValues = {};
-                        gapValues = {};
-                        let validRows = 0;
-                        for (let i = 1; i < json.length; i++) {
-                            const row = json[i];
-                            if (!row || !row[headerMap['KODE INJECT']]) continue;
-                            const kode = row[headerMap['KODE INJECT']].toString().trim();
-                            const idx = kodeInject.indexOf(kode);
-                            if (idx === -1) continue;
-                            const fields = ['STOCK AWAL', 'PRODUKSI', 'SURCIP', 'SUNTER', 'KIIC', 'ACT QTY', 'GAP'];
-                            fields.forEach(field => {
-                                const value = row[headerMap[field]];
-                                if (value !== undefined && value !== '') {
-                                    const num = Math.round(Number(value));
-                                    if (!isNaN(num) && num >= 0 && num <= 999999) {
-                                        if (field === 'ACT QTY') {
-                                            actQtyValues[idx] = num;
-                                        } else if (field === 'GAP') {
-                                            gapValues[idx] = num;
-                                        } else {
-                                            inputValues[field.toLowerCase().replace(' ', '')][idx] = num.toString();
-                                        }
-                                    }
-                                }
-                            });
-                            validRows++;
-                        }
-                        if (ws2) {
-                            for (let i = 1; i < json2.length; i++) {
-                                const row = json2[i];
-                                if (!row || !row[headerMap2['KODE INJECT']]) continue;
-                                const kode = row[headerMap2['KODE INJECT']].toString().trim();
-                                const idx = kodeInject.indexOf(kode);
-                                if (idx === -1) continue;
-                                const actBox = row[headerMap2['ACT /BOX']];
-                                if (actBox !== undefined && actBox !== '') {
-                                    const num = Math.round(Number(actBox));
-                                    if (!isNaN(num) && num >= 0 && num <= 9999) {
-                                        inputValues.actBox[idx] = num.toString();
-                                    }
-                                }
-                                const actQty = row[headerMap2['ACT QTY']];
-                                if (actQty !== undefined && actQty !== '') {
-                                    const num = Math.round(Number(actQty));
-                                    if (!isNaN(num) && num >= 0) {
-                                        actQtyValues[idx] = num;
-                                    }
-                                }
-                                validRows++;
-                            }
-                        }
-                        if (validRows === 0) {
-                            throw new Error('Tidak ada data valid yang ditemukan di file Excel.');
-                        }
-                        initializeTables();
-                        saveCurrentSheetData();
-                        saveDataToLocalStorage();
-                        showToast(`Berhasil mengimpor ${validRows} baris data.`);
-                    } catch (e) {
-                        console.error('Import Excel Error:', e);
-                        showToast(`Gagal mengimpor Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
-                    } finally {
-                        hideLoadingIndicator();
-                        el.fileInput.value = '';
-                    }
-                };
-                reader.onerror = () => {
-                    showToast('Gagal membaca file Excel.', true);
-                    hideLoadingIndicator();
-                };
-                reader.readAsArrayBuffer(files[0]);
-            } catch (e) {
-                console.error('Import Excel Error:', e);
-                showToast(`Gagal mengimpor Excel: ${e.message || 'Terjadi kesalahan.'}`, true);
+                const file = files[0];
+                const data = await readExcelFile(file);
+                
+                // Proses data dari Excel
+                processExcelData(data);
+                
+                showToast('Data berhasil diimpor dari Excel.');
+            } catch (error) {
+                console.error('Error importing Excel:', error);
+                showToast('Gagal mengimpor data dari Excel: ' + error.message, true);
+            } finally {
                 hideLoadingIndicator();
                 el.fileInput.value = '';
             }
         }
 
-        // Initialize the application after loading dependencies
-        document.addEventListener('DOMContentLoaded', async () => {
-            const sheetJSSuccess = await loadSheetJSLibrary();
-            if (!sheetJSSuccess) {
-                showToast('Gagal memuat library Excel. Fitur Excel dinonaktifkan.', true);
+        function readExcelFile(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        
+                        // Ambil sheet pertama
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        
+                        // Konversi ke JSON
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                        
+                        resolve(jsonData);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                
+                reader.onerror = function() {
+                    reject(new Error('Gagal membaca file'));
+                };
+                
+                reader.readAsArrayBuffer(file);
+            });
+        }
+
+        function processExcelData(data) {
+            if (!data || data.length < 2) {
+                throw new Error('File Excel tidak memiliki data yang cukup');
             }
-            if (typeof html2canvas === 'undefined') {
-                showToast('Gagal memuat library html2canvas. Fitur JPG dinonaktifkan.', true);
+            
+            // Ambil header
+            const headers = data[0].map(header => header.toString().trim().toUpperCase());
+            
+            // Cari indeks kolom berdasarkan nama header
+            const headerIndices = {
+                kodeInject: headers.findIndex(h => h.includes('KODE') && h.includes('INJECT')),
+                stockAwal: headers.findIndex(h => h.includes('STOCK') && h.includes('AWAL')),
+                produksi: headers.findIndex(h => h.includes('PRODUKSI')),
+                surcip: headers.findIndex(h => h.includes('SURCIP')),
+                sunter: headers.findIndex(h => h.includes('SUNTER')),
+                kiic: headers.findIndex(h => h.includes('KIIC')),
+                actQty: headers.findIndex(h => h.includes('ACT') && h.includes('QTY')),
+                gap: headers.findIndex(h => h.includes('GAP')),
+                actBox: headers.findIndex(h => h.includes('ACT') && (h.includes('BOX') || h.includes('/BOX')))
+            };
+            
+            // Reset data sebelum mengimpor
+            resetData();
+            
+            // Proses setiap baris data
+            for (let i = 1; i < data.length; i++) {
+                const row = data[i];
+                if (!row || row.length === 0) continue;
+                
+                // Cari indeks kode inject dalam array kodeInject
+                const kodeValue = row[headerIndices.kodeInject] ? row[headerIndices.kodeInject].toString().trim() : '';
+                const index = kodeInject.indexOf(kodeValue);
+                
+                if (index === -1) continue; // Skip jika kode tidak ditemukan
+                
+                // Isi nilai dari Excel ke inputValues
+                if (headerIndices.stockAwal !== -1 && row[headerIndices.stockAwal] !== undefined) {
+                    inputValues.stockAwal[index] = row[headerIndices.stockAwal].toString();
+                }
+                
+                if (headerIndices.produksi !== -1 && row[headerIndices.produksi] !== undefined) {
+                    inputValues.produksi[index] = row[headerIndices.produksi].toString();
+                }
+                
+                if (headerIndices.surcip !== -1 && row[headerIndices.surcip] !== undefined) {
+                    inputValues.surcip[index] = row[headerIndices.surcip].toString();
+                }
+                
+                if (headerIndices.sunter !== -1 && row[headerIndices.sunter] !== undefined) {
+                    inputValues.sunter[index] = row[headerIndices.sunter].toString();
+                }
+                
+                if (headerIndices.kiic !== -1 && row[headerIndices.kiic] !== undefined) {
+                    inputValues.kiic[index] = row[headerIndices.kiic].toString();
+                }
+                
+                if (headerIndices.actBox !== -1 && row[headerIndices.actBox] !== undefined) {
+                    inputValues.actBox[index] = row[headerIndices.actBox].toString();
+                }
+                
+                if (headerIndices.actQty !== -1 && row[headerIndices.actQty] !== undefined) {
+                    actQtyValues[index] = parseInt(row[headerIndices.actQty]) || 0;
+                }
+                
+                if (headerIndices.gap !== -1 && row[headerIndices.gap] !== undefined) {
+                    gapValues[index] = parseInt(row[headerIndices.gap]) || 0;
+                }
             }
-            init();
-        });
+            
+            // Perbarui tabel dengan data yang diimpor
+            initializeTables();
+            
+            // Simpan data yang diimpor
+            saveCurrentSheetData();
+            saveDataToLocalStorage();
+        }
+
+        // Fungsi Convert to JPG yang Diperbaiki
+        async function shareAsJpg() {
+            showLoadingIndicator();
+            
+            try {
+                // Pastikan kita berada di view utama
+                if (currentView !== 'main') {
+                    showMainTable();
+                    // Tunggu transisi selesai
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                }
+                
+                // Konfigurasi html2canvas untuk kualitas HD
+                const canvas = await html2canvas(el.mainTableContainer, {
+                    backgroundColor: isNightMode ? '#2c3e50' : '#ffffff',
+                    scale: 2, // Scale 2x untuk kualitas HD
+                    logging: false,
+                    useCORS: true,
+                    allowTaint: true
+                });
+                
+                // Konversi canvas ke data URL dengan kualitas tinggi
+                const imgData = canvas.toDataURL('image/jpeg', 0.95);
+                
+                // Buat nama file dengan timestamp
+                const fileName = `Laporan_Produksi_${isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+                
+                // Buat link untuk download
+                const link = document.createElement('a');
+                link.download = fileName;
+                link.href = imgData;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                // Bagikan via WhatsApp
+                const message = `*Laporan Produksi ${isNightMode ? 'Malam' : 'Hari'}*%0A${el.currentDate.textContent}%0A%0A_Silahkan lihat gambar terlampir_`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                
+                showToast('Gambar berhasil disimpan dan siap dibagikan ke WhatsApp');
+            } catch (error) {
+                console.error('Error generating JPG:', error);
+                showToast('Gagal membuat gambar: ' + error.message, true);
+            } finally {
+                hideLoadingIndicator();
+            }
+        }
+
+        // Inisialisasi aplikasi setelah DOM siap
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
