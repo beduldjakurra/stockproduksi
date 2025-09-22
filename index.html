@@ -2248,16 +2248,7 @@
         // ===== PWA FUNCTIONS =====
         const PWA = {
             init: () => {
-                // Register service worker
-                if ('serviceWorker' in navigator) {
-                    navigator.serviceWorker.register('/sw.js')
-                        .then(registration => {
-                            console.log('Service Worker registered with scope:', registration.scope);
-                        })
-                        .catch(error => {
-                            console.error('Service Worker registration failed:', error);
-                        });
-                }
+                // Service worker registration moved to separate script before closing body tag
                 
                 // Listen for install prompt
                 window.addEventListener('beforeinstallprompt', (e) => {
@@ -3974,5 +3965,16 @@
         // ===== INISIALISASI APLIKASI =====
         document.addEventListener('DOMContentLoaded', AppCore.init);
     </script>
+    <script>
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    const swUrl = './sw.js';
+    navigator.serviceWorker
+      .register(swUrl, { scope: './' })
+      .then((reg) => console.log('Service worker registered:', reg.scope))
+      .catch((err) => console.error('Service worker registration failed:', err));
+  });
+}
+</script>
 </body>
 </html> perbaiki input koma dalam tabel perhitungan box dalam kolom ACT/BOX
