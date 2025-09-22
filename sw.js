@@ -1,5 +1,5 @@
 /* PT Fuji Seat Indonesia - stockproduksi PWA Service Worker */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2';
 const CACHE_NAME = `sp-${CACHE_VERSION}`;
 
 // Use relative paths so this works on GitHub Pages or subpaths
