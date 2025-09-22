@@ -1,0 +1,46 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#4361ee"/>
+  
+  <!-- Icon Design - Factory/Industry Theme -->
+  <g transform="translate(64, 64)">
+    <!-- Building base -->
+    <rect x="50" y="200" width="300" height="184" fill="#ffffff" rx="8"/>
+    
+    <!-- Windows -->
+    <rect x="80" y="230" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="140" y="230" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="200" y="230" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="260" y="230" width="40" height="40" fill="#4361ee" rx="4"/>
+    
+    <rect x="80" y="290" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="140" y="290" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="200" y="290" width="40" height="40" fill="#4361ee" rx="4"/>
+    <rect x="260" y="290" width="40" height="40" fill="#4361ee" rx="4"/>
+    
+    <!-- Roof -->
+    <polygon points="40,200 200,120 360,200" fill="#ffffff"/>
+    
+    <!-- Chimney -->
+    <rect x="280" y="80" width="30" height="120" fill="#ffffff"/>
+    
+    <!-- Smoke -->
+    <circle cx="295" cy="60" r="8" fill="#ffffff" opacity="0.7"/>
+    <circle cx="300" cy="45" r="6" fill="#ffffff" opacity="0.6"/>
+    <circle cx="305" cy="30" r="4" fill="#ffffff" opacity="0.5"/>
+    
+    <!-- Company Text -->
+    <text x="200" y="370" text-anchor="middle" fill="#4361ee" font-family="Arial, sans-serif" font-size="24" font-weight="bold">FUJI SEAT</text>
+    
+    <!-- Gear icon for manufacturing -->
+    <g transform="translate(160, 140)">
+      <circle cx="40" cy="40" r="30" fill="none" stroke="#4361ee" stroke-width="4"/>
+      <circle cx="40" cy="40" r="15" fill="#4361ee"/>
+      <!-- Gear teeth -->
+      <rect x="38" y="10" width="4" height="10" fill="#4361ee"/>
+      <rect x="38" y="70" width="4" height="10" fill="#4361ee"/>
+      <rect x="10" y="38" width="10" height="4" fill="#4361ee"/>
+      <rect x="70" y="38" width="10" height="4" fill="#4361ee"/>
+    </g>
+  </g>
+</svg>
