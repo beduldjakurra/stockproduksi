@@ -1910,6 +1910,60 @@
         body.night-mode #thirdTable th:first-child {
             background: linear-gradient(135deg, var(--info), #0d7ea0);
         }
+        /* === Readability & Motion Reduction Overrides === */
+
+/* Perbesar teks agar mudah dibaca di mobile */
+th {
+  font-size: 1rem !important;         /* ~16px */
+  line-height: 1.4 !important;
+}
+
+td,
+.kode-inject {
+  font-size: 1.125rem !important;     /* ~18px */
+  line-height: 1.5 !important;
+}
+
+input[type="number"],
+input[type="text"] {
+  font-size: 1.125rem !important;     /* selaras dgn sel tabel */
+  line-height: 1.4 !important;
+}
+
+/* Matikan transisi/animasi visual */
+:root {
+  --transition: none !important;
+}
+
+/* Nonaktifkan transisi & animasi pada komponen utama UI */
+html, body, body *,
+table, thead, tbody, tr, th, td,
+input, button, select, textarea,
+.btn, .btn::before,
+.btn-modern, .btn-modern::before,
+.nav-button, .action-button,
+.tab, .container, .table-container, .table-wrapper,
+.toggle-switch, .slider {
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Hilangkan efek hover (angkat/transform) pada tombol */
+.btn:hover,
+.btn-modern:hover,
+.nav-button:hover,
+.action-button:hover {
+  transform: none !important;
+  box-shadow: inherit !important;
+}
+
+/* Pastikan elemen splash tidak menganimasikan apa pun */
+.enter-button,
+.logo-container,
+.logo-image {
+  animation: none !important;
+  transition: none !important;
+}
     </style>
 </head>
 <body>
