@@ -27,6 +27,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
+    <!-- Tambahkan di bawah firebase-app-compat.js dan firebase-firestore-compat.js -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
     
     <style>
         /* CSS Variables */
@@ -1965,8 +1967,31 @@ input, button, select, textarea,
   transition: none !important;
 }
     </style>
+
+<!-- Opsional: set konfigurasi Firebase jika app belum diinisialisasi di tempat lain -->
+<script>
+  // TODO: Ganti dengan konfigurasi proyek Firebase Anda atau hapus blok ini jika sudah inisialisasi di file lain.
+  // Ini bukan credential rahasia; aman di sisi-klien untuk Firebase.
+  window.FIREBASE_CONFIG = window.FIREBASE_CONFIG || {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+    projectId: "YOUR_PROJECT_ID",
+    appId: "YOUR_APP_ID"
+  };
+</script>
 </head>
 <body>
+<!-- Panel kompak Sinkronisasi Email/Password (letakkan dekat bagian atas halaman, mis. di bawah header) -->
+<div id="auth-panel" style="margin:12px auto;max-width:680px;border:1px solid var(--border-color);border-radius:8px;padding:8px 12px;background:#fff;color:inherit;font-size:0.95rem">
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+    <strong style="color:var(--primary)">Sinkron (Email/Password)</strong>
+    <input id="email-input" type="text" placeholder="Email (boleh palsu, mis. nama@app.local)" style="flex:1;min-width:180px;padding:8px;border:1px solid var(--border-color);border-radius:6px" />
+    <input id="password-input" type="password" placeholder="Password" style="flex:1;min-width:140px;padding:8px;border:1px solid var(--border-color);border-radius:6px" />
+    <button id="email-login-btn" class="btn btn-secondary" style="padding:8px 12px">Masuk / Daftar</button>
+  </div>
+  <div id="auth-status" style="margin-top:6px;color:var(--gray);font-size:0.9rem"></div>
+</div>
+
     <div class="progress-bar" id="progressBar"></div>
     
     <div class="cover-screen" id="coverScreen">
@@ -4959,5 +4984,8 @@ input, button, select, textarea,
         // ===== INISIALISASI APLIKASI =====
         document.addEventListener('DOMContentLoaded', AppCore.init);
     </script>
+
+<!-- Sertakan modul sinkronisasi tepat sebelum </body> -->
+<script src="./auth-email-sync.js"></script>
 </body>
 </html>
