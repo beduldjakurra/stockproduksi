@@ -17,16 +17,12 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- Icons PWA -->
-    <link rel="apple-touch-icon" href="icons/icon-180x180.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32x32.png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512x512.png">
-    <link rel="shortcut icon" href="favicon.ico">
     
     <!-- External Libraries -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
@@ -76,7 +72,7 @@
             --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
             
             /* Typography */
-            --font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             --font-size-sm: 0.875rem;
             --font-size-base: 1rem;
             --font-size-lg: 1.125rem;
@@ -157,7 +153,6 @@
             animation: fadeInDown 0.8s ease forwards;
         }
         
-        /* Logo Image - Tambahan baru */
         .logo-image {
             width: 200px;
             height: 200px;
@@ -201,7 +196,6 @@
             cursor: pointer;
             position: relative;
             overflow: hidden;
-            transition: var(--transition);
             z-index: 1;
             -webkit-tap-highlight-color: transparent;
         }
@@ -345,6 +339,19 @@
             background: rgba(255,255,255,0.05);
         }
         
+        .mode-toggle .mode-label {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            font-weight: 500;
+            color: var(--dark);
+            transition: var(--transition);
+        }
+        
+        body.night-mode .mode-toggle .mode-label {
+            color: var(--dark-text);
+        }
+        
         .toggle-switch {
             position: relative;
             display: inline-block;
@@ -399,17 +406,55 @@
             margin-bottom: var(--spacing-lg);
             transition: var(--transition);
             -webkit-overflow-scrolling: touch;
+            min-width: 100%;
+            width: 100%;
+            max-width: 100%;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) var(--gray-light);
         }
         
         body.night-mode .table-container {
             background: rgba(255,255,255,0.05);
             border: 1px solid var(--dark-border);
+            scrollbar-color: var(--primary-light) var(--dark-border);
+        }
+        
+        .table-container::-webkit-scrollbar {
+            height: 8px;
+            width: 8px;
+        }
+        
+        .table-container::-webkit-scrollbar-track {
+            background: var(--gray-light);
+            border-radius: 4px;
+        }
+        
+        body.night-mode .table-container::-webkit-scrollbar-track {
+            background: var(--dark-border);
+        }
+        
+        .table-container::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        
+        body.night-mode .table-container::-webkit-scrollbar-thumb {
+            background: var(--primary-light);
+        }
+        
+        .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-dark);
+        }
+        
+        body.night-mode .table-container::-webkit-scrollbar-thumb:hover {
+            background: var(--primary);
         }
         
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 600px;
+            min-width: 900px;
+            table-layout: fixed;
         }
         
         caption {
@@ -431,6 +476,10 @@
             text-align: center;
             border-bottom: 1px solid var(--border-color);
             transition: var(--transition);
+            min-width: 100px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            font-family: var(--font-family);
         }
         
         body.night-mode th, 
@@ -448,6 +497,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.85rem;
+            min-width: 120px;
         }
         
         body.night-mode th {
@@ -467,10 +517,18 @@
             font-weight: 600;
             text-align: left;
             color: var(--dark);
+            font-family: var(--font-family);
+            min-width: 150px;
+            position: sticky;
+            left: 0;
+            z-index: 9;
+            background: white;
+            box-shadow: 2px 0 5px rgba(0,0,0,0.1);
         }
         
         body.night-mode .kode-inject {
             color: var(--dark-text);
+            background: var(--dark-surface);
         }
         
         /* Input Fields */
@@ -486,6 +544,7 @@
             transition: var(--transition);
             -webkit-appearance: none;
             -moz-appearance: textfield;
+            font-family: var(--font-family);
         }
         
         input[type="number"]::-webkit-outer-spin-button,
@@ -512,12 +571,6 @@
         body.night-mode input[type="text"]:focus {
             border-color: var(--primary-light);
             box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
-        }
-        
-        /* Special styling for ACT/BOX input */
-        .act-box-input {
-            text-align: center;
-            font-family: monospace;
         }
         
         /* Result Cells */
@@ -563,6 +616,7 @@
             font-weight: 600;
             display: flex;
             align-items: center;
+            justify-content: center;
             gap: var(--spacing-sm);
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
@@ -593,179 +647,6 @@
         body.night-mode .footer {
             color: var(--gray-light);
             border-top: 1px solid var(--dark-border);
-        }
-        
-        /* Komponen Tambahan */
-        /* Floating Action Button */
-        .floating-action-button {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            box-shadow: var(--shadow-lg);
-            z-index: 100;
-            transition: var(--transition);
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .floating-action-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
-        }
-        
-        /* Indicators */
-        .loading-indicator,
-        .status-indicator {
-            position: fixed;
-            bottom: 20px;
-            left: 20px;
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--radius-sm);
-            background: white;
-            box-shadow: var(--shadow-lg);
-            display: none;
-            align-items: center;
-            gap: var(--spacing-sm);
-            z-index: 1000;
-            color: var(--dark);
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-        }
-        
-        body.night-mode .loading-indicator,
-        body.night-mode .status-indicator {
-            background: rgba(37, 43, 59, 0.9);
-            color: var(--dark-text);
-        }
-        
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: var(--spacing-md) var(--spacing-lg);
-            border-radius: var(--radius-sm);
-            background: white;
-            box-shadow: var(--shadow-lg);
-            display: none;
-            align-items: center;
-            gap: var(--spacing-sm);
-            z-index: 1000;
-            color: var(--dark);
-            font-weight: 500;
-            backdrop-filter: blur(10px);
-            animation: slideUp 0.3s ease forwards;
-        }
-        
-        .toast.error {
-            background: var(--danger);
-            color: white;
-        }
-        
-        body.night-mode .toast {
-            background: rgba(37, 43, 59, 0.9);
-            color: var(--dark-text);
-        }
-        
-        /* Modal */
-        .modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000;
-            display: none;
-            animation: fadeIn 0.3s ease forwards;
-        }
-        
-        .modal.active {
-            display: flex;
-        }
-        
-        .modal-content {
-            background: white;
-            padding: var(--spacing-lg);
-            border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
-            max-width: 500px;
-            width: 90%;
-            text-align: center;
-            animation: scaleIn 0.3s ease forwards;
-        }
-        
-        body.night-mode .modal-content {
-            background: var(--dark-surface);
-        }
-        
-        .modal-content h3 {
-            margin-bottom: var(--spacing-md);
-            color: var(--primary);
-            font-size: var(--font-size-xl);
-        }
-        
-        body.night-mode .modal-content h3 {
-            color: var(--primary-light);
-        }
-        
-        .modal-content p {
-            margin-bottom: var(--spacing-lg);
-            color: var(--dark);
-            line-height: var(--line-height);
-        }
-        
-        body.night-mode .modal-content p {
-            color: var(--dark-text);
-        }
-        
-        .modal-buttons {
-            display: flex;
-            gap: var(--spacing-md);
-            justify-content: center;
-        }
-        
-        .modal-button {
-            padding: var(--spacing-md) var(--spacing-lg);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-weight: 600;
-            transition: var(--transition);
-            -webkit-tap-highlight-color: transparent;
-        }
-        
-        .modal-button.cancel {
-            background: var(--gray-light);
-            color: var(--dark);
-        }
-        
-        .modal-button.cancel:hover {
-            background: #d8dce6;
-        }
-        
-        body.night-mode .modal-button.cancel {
-            background: rgba(255,255,255,0.1);
-            color: var(--dark-text);
-        }
-        
-        .modal-button.confirm {
-            background: var(--danger);
-            color: white;
-        }
-        
-        .modal-button.confirm:hover {
-            background: var(--danger-dark);
         }
         
         /* Tab Container */
@@ -840,6 +721,7 @@
             position: relative;
             overflow: hidden;
             min-height: 400px;
+            width: 100%;
         }
         
         .table-wrapper {
@@ -853,6 +735,7 @@
             transform: translateX(100%);
             pointer-events: none;
             transition: opacity 0.4s ease, transform 0.4s ease;
+            overflow-x: hidden;
         }
         
         .table-wrapper.active {
@@ -860,25 +743,6 @@
             transform: translateX(0);
             pointer-events: all;
             position: relative;
-        }
-        
-        /* Mobile Scroll Hint */
-        .mobile-scroll-hint {
-            text-align: center;
-            color: var(--gray);
-            font-size: var(--font-size-sm);
-            margin-bottom: var(--spacing-md);
-        }
-        
-        .table-scroll-indicator {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: var(--primary);
-            font-size: var(--font-size-xl);
-            opacity: 0.7;
-            display: none;
         }
         
         /* Import Instruction */
@@ -997,13 +861,13 @@
         .table-modern thead th {
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
-            font-weight: 600;
             padding: var(--spacing-md);
             text-align: center;
             border: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             font-size: 0.85rem;
+            min-width: 120px;
         }
         
         .table-modern tbody tr:nth-child(even) {
@@ -1018,6 +882,7 @@
             padding: var(--spacing-md);
             border: none;
             border-bottom: 1px solid var(--border-color);
+            min-width: 100px;
         }
         
         body.night-mode .table-modern td {
@@ -1218,15 +1083,6 @@
             gap: var(--spacing-sm);
         }
         
-        .install-prompt-button {
-            padding: var(--spacing-sm) var(--spacing-md);
-            border: none;
-            border-radius: var(--radius-sm);
-            cursor: pointer;
-            font-weight: 600;
-            transition: var(--transition);
-        }
-        
         .install-prompt-button.install {
             background: var(--primary);
             color: white;
@@ -1291,6 +1147,86 @@
             color: white;
         }
         
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: var(--radius-md);
+            padding: var(--spacing-lg);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        body.night-mode .modal-content {
+            background: var(--dark-surface);
+        }
+        
+        .modal.active .modal-content {
+            transform: scale(1);
+        }
+        
+        .modal-content h3 {
+            margin-bottom: var(--spacing-md);
+            color: var(--primary);
+        }
+        
+        .modal-content p {
+            margin-bottom: var(--spacing-lg);
+            color: var(--dark);
+        }
+        
+        body.night-mode .modal-content p {
+            color: var(--dark-text);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: var(--spacing-sm);
+            justify-content: flex-end;
+        }
+        
+        .modal-button {
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        
+        .modal-button.cancel {
+            background: var(--gray-light);
+            color: var(--dark);
+        }
+        
+        .modal-button.confirm {
+            background: var(--danger);
+            color: white;
+        }
+        
         /* Responsive Design */
         @media (max-width: 768px) {
             body {
@@ -1307,6 +1243,9 @@
             
             h1 {
                 font-size: var(--font-size-3xl);
+                flex-direction: column;
+                gap: var(--spacing-sm);
+                align-items: center;
             }
             
             .logo {
@@ -1337,12 +1276,9 @@
                 padding: 0 var(--spacing-md) var(--spacing-md);
             }
             
-            .table-scroll-indicator {
-                display: block;
-            }
-            
             th, td {
                 padding: var(--spacing-xs);
+                min-width: 80px;
             }
             
             .floating-action-button {
@@ -1381,12 +1317,64 @@
                 right: 15px;
                 left: auto;
             }
+            
+            /* PERUBAHAN: Styling untuk tabel mobile */
+            .table-wrapper {
+                padding: 0;
+                width: 100%;
+                margin: 0;
+                overflow-x: hidden;
+            }
+            
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+                margin: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .tables-container {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                overflow: hidden;
+            }
         }
         
         @media (max-width: 576px) {
+            /* Mode toggle untuk mobile */
             .mode-toggle {
-                flex-direction: column;
+                flex-direction: row;
+                justify-content: space-between;
                 gap: var(--spacing-sm);
+                padding: var(--spacing-sm);
+            }
+            
+            .mode-toggle .mode-label {
+                font-size: var(--font-size-sm);
+            }
+            
+            .mode-toggle .mode-label i {
+                font-size: var(--font-size-base);
+            }
+            
+            .toggle-switch {
+                width: 50px;
+                height: 25px;
+            }
+            
+            .slider:before {
+                height: 18px;
+                width: 18px;
+                left: 3.5px;
+                bottom: 3.5px;
+            }
+            
+            input:checked + .slider:before {
+                transform: translateX(25px);
             }
             
             .modal-buttons {
@@ -1403,8 +1391,48 @@
             }
             
             .action-button {
-                padding: var(--spacing-sm) var(--spacing-md);
-                font-size: var(--font-size-sm);
+                padding: 10px;
+                font-size: 0.8rem;
+            }
+            
+            .action-button i {
+                font-size: 0.9rem;
+            }
+            
+            /* PERUBAHAN: Styling untuk tabel mobile */
+            .table-wrapper {
+                padding: 0;
+                width: 100%;
+                margin: 0;
+                overflow-x: hidden;
+            }
+            
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+                margin: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .tables-container {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                overflow: hidden;
+            }
+            
+            th, td {
+                min-width: 70px;
+                padding: 6px;
+                font-size: 0.8rem;
+            }
+            
+            .kode-inject {
+                min-width: 100px;
+                font-size: 0.75rem;
             }
         }
         
@@ -1473,6 +1501,71 @@
             
             .action-button:not(.save):not(.jpg-share):not(.import):not(.reset):hover::after {
                 opacity: 1;
+            }
+            
+            /* PERUBAHAN: Styling untuk tabel mobile sangat kecil */
+            .table-wrapper {
+                padding: 0;
+                width: 100%;
+                margin: 0;
+                overflow-x: hidden;
+            }
+            
+            .table-container {
+                width: 100%;
+                overflow-x: auto;
+                margin: 0;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+                -webkit-overflow-scrolling: touch;
+            }
+            
+            .tables-container {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                overflow: hidden;
+            }
+            
+            th, td {
+                min-width: 60px;
+                padding: 4px;
+                font-size: 0.75rem;
+            }
+            
+            .kode-inject {
+                min-width: 90px;
+                font-size: 0.7rem;
+            }
+            
+            h1 {
+                font-size: var(--font-size-xl);
+                flex-direction: row;
+                gap: 5px;
+                align-items: center;
+                padding: 5px 0;
+            }
+            
+            h1 i {
+                font-size: 1.2rem;
+                margin-right: 5px;
+            }
+            
+            /* PERUBAHAN: Ukuran kolom KODE INJECT pada tabel kedua lebih kecil */
+            #secondTable .kode-inject {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                font-size: 0.75rem;
+                padding: 6px 4px;
+            }
+            
+            #secondTable th:first-child {
+                width: 80px;
+                min-width: 80px;
+                max-width: 80px;
+                padding: 6px 4px;
             }
         }
         
@@ -1573,6 +1666,250 @@
                 box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
             }
         }
+        
+        /* Custom CSS untuk menyembunyikan notifikasi yang menghalangi tabel */
+        .progress-bar {
+            display: none !important;
+        }
+        
+        .loading-indicator,
+        .status-indicator {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .toast {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        /* Modal untuk reset data - dipulihkan */
+        .modal#confirmationModal {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .modal#confirmationModal.active {
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            pointer-events: all !important;
+        }
+        
+        .install-prompt {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .offline-indicator {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .sync-status {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        .floating-action-button {
+            display: none !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+        }
+        
+        /* Pastikan tabel tetap terlihat penuh tanpa halangan */
+        .table-container {
+            z-index: 1 !important;
+            position: relative !important;
+        }
+        
+        .tables-container {
+            z-index: 1 !important;
+            position: relative !important;
+        }
+        
+        /* Mengurangi padding pada container untuk memberikan lebih banyak ruang untuk tabel */
+        .container {
+            padding: 0 !important;
+        }
+        
+        header {
+            padding: 10px !important;
+        }
+        
+        footer {
+            padding: 10px !important;
+        }
+        
+        /* Menghilangkan border dan shadow yang mungkin mengganggu */
+        .table-container {
+            border: none !important;
+            box-shadow: none !important;
+            margin-bottom: 5px !important;
+        }
+        
+        /* PERBAIKAN: Styling untuk capture gambar */
+        .capture-wrapper {
+            background-color: white;
+            padding: 20px;
+            font-family: var(--font-family);
+            color: var(--dark);
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        body.night-mode .capture-wrapper {
+            background-color: var(--dark-surface);
+            color: var(--dark-text);
+        }
+        
+        .capture-header {
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--primary);
+            padding-bottom: 10px;
+        }
+        
+        .capture-header h1 {
+            color: var(--primary);
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+        
+        .capture-header h2 {
+            color: var(--dark);
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+        
+        .capture-header h3 {
+            color: var(--gray);
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+        
+        .capture-header p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        body.night-mode .capture-header h1 {
+            color: var(--primary-light);
+        }
+        
+        body.night-mode .capture-header h2 {
+            color: var(--dark-text);
+        }
+        
+        body.night-mode .capture-header h3,
+        body.night-mode .capture-header p {
+            color: var(--gray-light);
+        }
+        
+        .capture-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        
+        .capture-table th {
+            background-color: var(--primary);
+            color: white;
+            padding: 10px;
+            text-align: center;
+            font-weight: 600;
+        }
+        
+        .capture-table td {
+            padding: 10px;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        body.night-mode .capture-table th {
+            background-color: var(--info);
+        }
+        
+        body.night-mode .capture-table td {
+            border-bottom: 1px solid var(--dark-border);
+        }
+        
+        .capture-footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+            font-size: 12px;
+            color: var(--gray);
+        }
+        
+        body.night-mode .capture-footer {
+            border-top: 1px solid var(--dark-border);
+            color: var(--gray-light);
+        }
+        
+        /* Header sticky */
+        th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        body.night-mode th:first-child {
+            background: linear-gradient(135deg, var(--info), #0d7ea0);
+        }
+        
+        /* Perubahan untuk membuat header KODE INJECT pada tabel kedua sama dengan tabel pertama */
+        #secondTable th:first-child {
+            padding: var(--spacing-sm);
+            font-weight: 600;
+            color: white;
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            min-width: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        body.night-mode #secondTable th:first-child {
+            background: linear-gradient(135deg, var(--info), #0d7ea0);
+        }
+        
+        /* Perubahan untuk membuat header KODE INJECT pada tabel ketiga sama dengan tabel pertama */
+        #thirdTable th:first-child {
+            padding: var(--spacing-sm);
+            font-weight: 600;
+            color: white;
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.85rem;
+            min-width: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        body.night-mode #thirdTable th:first-child {
+            background: linear-gradient(135deg, var(--info), #0d7ea0);
+        }
     </style>
 </head>
 <body>
@@ -1596,20 +1933,27 @@
                 </h1>
                 <div class="date" id="currentDate"></div>
                 
+                <!-- PERUBAHAN UTAMA: Mode Toggle dengan struktur baru -->
                 <div class="mode-toggle animate-up">
-                    <span><i class="fas fa-sun"></i> Day</span>
+                    <div class="mode-label">
+                        <i class="fas fa-sun"></i>
+                        <span>Day</span>
+                    </div>
                     <label class="toggle-switch">
                         <input type="checkbox" id="modeToggle">
                         <span class="slider"></span>
                     </label>
-                    <span>Night <i class="fas fa-moon"></i></span>
+                    <div class="mode-label">
+                        <i class="fas fa-moon"></i>
+                        <span>Night</span>
+                    </div>
                 </div>
                 
                 <div class="action-buttons animate-up delay-2">
                     <button class="action-button save btn-modern btn-modern-primary" id="saveExcelButton" aria-label="Save to Excel and Share" role="button" tabindex="0" data-title="Save to Excel">
                         <i class="fas fa-file-excel"></i> <span>Save to Excel</span>
                     </button>
-                    <button class="action-button jpg-share btn-modern btn-modern-purple" id="shareJpgButton" aria-label="Convert to JPG and Share" role="button" tabindex="0" data-title="Convert to JPG">
+                    <button class="action-button jpg-share btn-modern btn-modern-purple" id="shareJpgButton" aria-label="Convert to JPG and Share" role="button" tabindex="0" data-title="Convert to JPG" onclick="ShareManager.captureStockProductionTable()">
                         <i class="fas fa-image"></i> <span>Convert to JPG</span>
                     </button>
                     <button class="action-button import btn-modern btn-modern-primary" id="importExcelButton" aria-label="Import Excel" role="button" tabindex="0" data-title="Import Excel">
@@ -1650,9 +1994,7 @@
             <div class="tables-container">
                 <!-- Tabel 1: Stock Produksi -->
                 <div class="table-wrapper active" id="mainTableWrapper">
-                    <div class="mobile-scroll-hint">Geser untuk melihat tabel lengkap →</div>
                     <div class="table-container" id="mainTableContainer">
-                        <div class="table-scroll-indicator">→</div>
                         <table id="mainTable" class="table-modern" role="grid" aria-label="Tabel Utama Produksi">
                             <caption>Laporan Stock Produksi</caption>
                             <thead>
@@ -1674,9 +2016,7 @@
                 
                 <!-- Tabel 2: Perhitungan Box -->
                 <div class="table-wrapper" id="secondTableWrapper">
-                    <div class="table-scroll-indicator">→</div>
                     <div class="table-container" id="secondTableContainer">
-                        <div class="table-scroll-indicator">→</div>
                         <table id="secondTable" class="table-modern table-2" role="grid" aria-label="Tabel Perhitungan Box">
                             <caption>Perhitungan Box</caption>
                             <thead>
@@ -1694,9 +2034,7 @@
                 
                 <!-- Tabel 3: Kekuatan Stock -->
                 <div class="table-wrapper" id="thirdTableWrapper">
-                    <div class="table-scroll-indicator">→</div>
                     <div class="table-container" id="thirdTableContainer">
-                        <div class="table-scroll-indicator">→</div>
                         <table id="thirdTable" class="table-modern table-3" role="grid" aria-label="Tabel Kekuatan Stock">
                             <caption>Kekuatan Stock</caption>
                             <thead>
@@ -1744,10 +2082,6 @@
         <i class="fas fa-check-circle"></i> Operasi berhasil
     </div>
     
-    <div class="sync-status" id="syncStatus" style="display: none;">
-        <i class="fas fa-sync-alt"></i> <span>Sync Status</span>
-    </div>
-    
     <div class="modal" id="confirmationModal" role="dialog" aria-labelledby="modalTitle">
         <div class="modal-content">
             <h3 id="modalTitle"><i class="fas fa-exclamation-triangle"></i> Konfirmasi</h3>
@@ -1781,6 +2115,10 @@
         <i class="fas fa-wifi-slash"></i> Anda sedang offline
     </div>
     
+    <div class="sync-status" id="syncStatus" style="display: none;">
+        <i class="fas fa-sync-alt"></i> <span>Sync Status</span>
+    </div>
+    
     <script>
         // ===== KONFIGURASI APLIKASI =====
         const APP_CONFIG = {
@@ -1801,6 +2139,16 @@
                 storageBucket: "fuji-seat-laporan.appspot.com",
                 messagingSenderId: "123456789012",
                 appId: "1:123456789012:web:abcdef123456789012345"
+            },
+            // PERUBAHAN: Konfigurasi untuk JPG yang ditingkatkan
+            jpgConfig: {
+                maxSize: 2000000, // Diubah dari 1.5MB menjadi 2MB
+                initialQuality: 0.95, // Ditingkatkan dari 0.9
+                minQuality: 0.5, // Diturunkan untuk fleksibilitas lebih
+                scale: 2.5, // Ditingkatkan untuk kualitas lebih baik
+                maxScale: 4, // Ditingkatkan untuk fleksibilitas lebih
+                minScale: 1,
+                maxIterations: 5
             }
         };
         
@@ -1889,13 +2237,13 @@
         
         // ===== FUNGSI PERHITUNGAN TOTAL =====
         const TotalCalculator = {
-            // Fungsi ini sengaja dikosongkan untuk menghilangkan total
+            // Fungsi ini sengakan dikosongkan untuk menghilangkan total
             initTotals: () => {
                 // Tidak membuat baris total lagi
                 return;
             },
             calculateTotals: () => {
-                // Fungsi ini sengaja dikosongkan
+                // Fungsi ini sengakan dikosongkan
                 return;
             }
         };
@@ -2251,7 +2599,16 @@
         // ===== PWA FUNCTIONS =====
         const PWA = {
             init: () => {
-                // Service worker registration moved to separate script before closing body tag
+                // Register service worker
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.register('/sw.js')
+                        .then(registration => {
+                            console.log('Service Worker registered with scope:', registration.scope);
+                        })
+                        .catch(error => {
+                            console.error('Service Worker registration failed:', error);
+                        });
+                }
                 
                 // Listen for install prompt
                 window.addEventListener('beforeinstallprompt', (e) => {
@@ -2571,29 +2928,58 @@
                         const cursorPosition = this.selectionStart;
                         let value = this.value;
                         
+                        // Hanya proses jika ada perubahan
+                        if (value === '') {
+                            // Update nilai di state jika kosong
+                            const idx = parseInt(this.dataset.index);
+                            if (!isNaN(idx)) {
+                                APP_STATE.inputValues.actBox[idx] = '';
+                                AppCore.calculateActQty(idx);
+                                AppCore.debounceSave();
+                                AppCore.updateResultsDisplay();
+                            }
+                            return;
+                        }
+                        
+                        // Periksa apakah karakter terakhir adalah koma
+                        const lastChar = value.charAt(value.length - 1);
+                        const endsWithComma = lastChar === ',';
+                        
                         // Hapus semua karakter non-angka dan non-koma
                         value = value.replace(/[^0-9,]/g, '');
                         
-                        // Pisahkan menjadi bagian-bagian berdasarkan koma
-                        const parts = value.split(',');
+                        // Jika input berakhir dengan koma, pastikan koma tetap ada
+                        if (endsWithComma && value.charAt(value.length - 1) !== ',') {
+                            value += ',';
+                        }
                         
-                        // Proses setiap bagian untuk memastikan valid
+                        // Proses koma ganda atau koma di awal
+                        const parts = value.split(',');
                         const validParts = [];
-                        for (const part of parts) {
-                            if (part.trim() !== '') {
-                                validParts.push(part.trim());
+                        
+                        // Proses bagian pertama (sebelum koma pertama)
+                        if (parts.length > 0 && parts[0].trim() !== '') {
+                            validParts.push(parts[0].trim());
+                        }
+                        
+                        // Proses bagian selanjutnya (setelah koma)
+                        for (let i = 1; i < parts.length; i++) {
+                            const part = parts[i].trim();
+                            if (part !== '') {
+                                validParts.push(part);
                             }
                         }
                         
-                        // Gabungkan kembali dengan koma
-                        value = validParts.join(',');
-                        
-                        // Pastikan tidak ada koma di awal atau akhir
-                        if (value.startsWith(',')) {
-                            value = value.substring(1);
-                        }
-                        if (value.endsWith(',')) {
-                            value = value.substring(0, value.length - 1);
+                        // Rekonstruksi nilai
+                        if (validParts.length > 0) {
+                            value = validParts.join(',');
+                            
+                            // Jika input asli berakhir dengan koma, pastikan hasil juga berakhir dengan koma
+                            if (endsWithComma && !value.endsWith(',')) {
+                                value += ',';
+                            }
+                        } else {
+                            value = '';
                         }
                         
                         // Update nilai input
@@ -2648,6 +3034,53 @@
                         }
                     });
                     
+                    // Tambahkan event listener untuk blur
+                    input.addEventListener('blur', function() {
+                        let value = this.value;
+                        
+                        // Jika input kosong, biarkan kosong
+                        if (value === '') return;
+                        
+                        // Hapus semua karakter non-angka dan non-koma
+                        value = value.replace(/[^0-9,]/g, '');
+                        
+                        // Hapus koma di akhir jika ada
+                        if (value.endsWith(',')) {
+                            value = value.substring(0, value.length - 1);
+                        }
+                        
+                        // Pisahkan menjadi bagian-bagian berdasarkan koma
+                        const parts = value.split(',');
+                        
+                        // Proses setiap bagian untuk memastikan valid
+                        const validParts = [];
+                        for (const part of parts) {
+                            if (part.trim() !== '') {
+                                validParts.push(part.trim());
+                            }
+                        }
+                        
+                        // Gabungkan kembali dengan koma
+                        value = validParts.join(',');
+                        
+                        // Update nilai input
+                        this.value = value;
+                        
+                        // Dapatkan index dari input
+                        const idx = parseInt(this.dataset.index);
+                        if (!isNaN(idx)) {
+                            // Update nilai di state
+                            APP_STATE.inputValues.actBox[idx] = value;
+                            
+                            // Hitung ACT QTY
+                            AppCore.calculateActQty(idx);
+                            
+                            // Simpan perubahan
+                            AppCore.debounceSave();
+                            AppCore.updateResultsDisplay();
+                        }
+                    });
+                    
                     // Tambahkan event listener untuk paste
                     input.addEventListener('paste', function(e) {
                         e.preventDefault();
@@ -2664,7 +3097,19 @@
                         const currentValue = this.value;
                         
                         // Buat nilai baru dengan menambahkan teks yang disisipkan
-                        const newValue = currentValue.substring(0, start) + sanitizedText + currentValue.substring(end);
+                        let newValue = currentValue.substring(0, start) + sanitizedText + currentValue.substring(end);
+                        
+                        // Proses nilai baru untuk memastikan format yang valid
+                        const parts = newValue.split(',');
+                        const validParts = [];
+                        
+                        for (const part of parts) {
+                            if (part.trim() !== '') {
+                                validParts.push(part.trim());
+                            }
+                        }
+                        
+                        newValue = validParts.join(',');
                         
                         // Update nilai input
                         this.value = newValue;
@@ -2740,7 +3185,6 @@
                     AppUI.closeModal();
                 });
                 if (DOM.saveExcelButton) DOM.saveExcelButton.addEventListener('click', ExcelManager.saveToExcel);
-                if (DOM.shareJpgButton) DOM.shareJpgButton.addEventListener('click', ShareManager.shareAsJpg);
                 if (DOM.importExcelButton) DOM.importExcelButton.addEventListener('click', () => {
                     if (APP_STATE.currentView === 'third') {
                         DOM.fileInputThird.click();
@@ -3785,6 +4229,337 @@
         
         // ===== SHARE FUNCTIONS =====
         const ShareManager = {
+            captureStockProductionTable: () => {
+                AppUI.showLoadingIndicator();
+                
+                try {
+                    if (!Utils.checkLibraryAvailability('html2canvas', html2canvas)) {
+                        throw new Error('Library html2canvas tidak tersedia.');
+                    }
+                    
+                    // Simpan state mode saat ini
+                    const currentNightMode = APP_STATE.isNightMode;
+                    
+                    // Tentukan tabel yang akan diambil - selalu tabel stock produksi
+                    const targetTable = document.getElementById('mainTable');
+                    const tableTitle = 'Laporan Stock Produksi';
+                    
+                    if (!targetTable) {
+                        throw new Error('Tabel Stock Produksi tidak ditemukan.');
+                    }
+                    
+                    // Simpan state mode saat ini
+                    const originalNightMode = APP_STATE.isNightMode;
+                    
+                    // Paksa mode terang untuk kualitas gambar terbaik
+                    APP_STATE.isNightMode = false;
+                    document.body.classList.remove('night-mode');
+                    
+                    // Buat elemen wrapper sementara untuk menampung tabel
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'capture-wrapper';
+                    wrapper.style.position = 'absolute';
+                    wrapper.style.top = '0';
+                    wrapper.style.left = '0';
+                    wrapper.style.width = '1200px';
+                    wrapper.style.maxWidth = '1200px';
+                    wrapper.style.backgroundColor = '#ffffff';
+                    wrapper.style.padding = '20px';
+                    wrapper.style.boxSizing = 'border-box';
+                    wrapper.style.fontFamily = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif";
+                    wrapper.style.color = '#2b2d42';
+                    wrapper.style.zIndex = '10000';
+                    
+                    // Tambahkan header informasi
+                    const headerInfo = document.createElement('div');
+                    headerInfo.className = 'capture-header';
+                    headerInfo.innerHTML = `
+                        <h1>PT FUJI SEAT INDONESIA</h1>
+                        <h2>Laporan Data Stock Akhir Proses Div.INJECTION</h2>
+                        <h3>${tableTitle}</h3>
+                        <p>Shift: ${currentNightMode ? 'NIGHT' : 'DAY'} | Tanggal: ${DOM.currentDate.textContent}</p>
+                    `;
+                    wrapper.appendChild(headerInfo);
+                    
+                    // Salin tabel ke wrapper
+                    const tableClone = targetTable.cloneNode(true);
+                    
+                    // Terapkan styling yang konsisten untuk tabel
+                    tableClone.style.width = '100%';
+                    tableClone.style.borderCollapse = 'collapse';
+                    tableClone.style.fontSize = '14px';
+                    tableClone.style.marginBottom = '20px';
+                    tableClone.style.backgroundColor = '#ffffff';
+                    
+                    // Styling untuk header tabel
+                    const headerCells = tableClone.querySelectorAll('thead th');
+                    headerCells.forEach(th => {
+                        th.style.backgroundColor = '#4361ee';
+                        th.style.color = '#ffffff';
+                        th.style.fontWeight = '600';
+                        th.style.padding = '12px';
+                        th.style.textAlign = 'center';
+                        th.style.border = 'none';
+                    });
+                    
+                    // Styling untuk sel data
+                    const dataCells = tableClone.querySelectorAll('tbody td');
+                    dataCells.forEach(td => {
+                        td.style.padding = '12px';
+                        td.style.textAlign = 'center';
+                        td.style.borderBottom = '1px solid #dee2e6';
+                        td.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    // Styling untuk sel dengan khusus
+                    const kodeInjectCells = tableClone.querySelectorAll('.kode-inject');
+                    kodeInjectCells.forEach(cell => {
+                        cell.style.fontWeight = '600';
+                        cell.style.textAlign = 'left';
+                        cell.style.backgroundColor = '#ffffff';
+                        cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                    });
+                    
+                    const resultCells = tableClone.querySelectorAll('.result-cell');
+                    resultCells.forEach(cell => {
+                        cell.style.fontWeight = '600';
+                        cell.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    const positiveCells = tableClone.querySelectorAll('.positive');
+                    positiveCells.forEach(cell => {
+                        cell.style.color = '#06d6a0';
+                        cell.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    const negativeCells = tableClone.querySelectorAll('.negative');
+                    negativeCells.forEach(cell => {
+                        cell.style.color = '#ef476f';
+                        cell.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    const zeroCells = tableClone.querySelectorAll('.zero');
+                    zeroCells.forEach(cell => {
+                        cell.style.color = '#8d99ae';
+                        cell.style.backgroundColor = '#ffffff';
+                    });
+                    
+                    wrapper.appendChild(tableClone);
+                    
+                    // Tambahkan footer informasi
+                    const footerInfo = document.createElement('div');
+                    footerInfo.className = 'capture-footer';
+                    footerInfo.innerHTML = `
+                        <p>© 2025 Laporan Produksi Harian - PT Fuji Seat Indonesia</p>
+                        <p>Dibuat pada: ${new Date().toLocaleString('id-ID')}</p>
+                    `;
+                    wrapper.appendChild(footerInfo);
+                    
+                    // Tambahkan wrapper ke body
+                    document.body.appendChild(wrapper);
+                    
+                    // Fungsi untuk mengunduh file
+                    const downloadImage = (imgData, fileName) => {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                // Buat link download
+                                const link = document.createElement('a');
+                                link.download = fileName;
+                                link.href = imgData;
+                                
+                                // Tambahkan ke DOM
+                                document.body.appendChild(link);
+                                
+                                // Trigger klik
+                                link.click();
+                                
+                                // Hapus dari DOM
+                                document.body.removeChild(link);
+                                
+                                resolve(true);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
+                    };
+                    
+                    // Fungsi untuk memeriksa ukuran file dan menyesuaikan kualitas jika diperlukan
+                    const checkFileSizeAndAdjust = async (canvas, quality, scale) => {
+                        // Konversi ke JPG dengan kualitas yang diberikan
+                        const imgData = canvas.toDataURL('image/jpeg', quality);
+                        
+                        // Periksa ukuran file dalam bytes
+                        const fileSize = Math.round((imgData.length * 0.75) / 1024); // Konversi ke KB
+                        
+                        // Jika ukuran file masih di bawah batas, kembalikan data
+                        if (fileSize <= APP_CONFIG.jpgConfig.maxSize / 1024) {
+                            return { success: true, imgData, fileSize };
+                        }
+                        
+                        // Jika masih terlalu besar, kurangi kualitas atau skala
+                        if (quality > APP_CONFIG.jpgConfig.minQuality) {
+                            const newQuality = Math.max(quality - 0.1, APP_CONFIG.jpgConfig.minQuality);
+                            return checkFileSizeAndAdjust(canvas, newQuality, scale);
+                        } else if (scale > APP_CONFIG.jpgConfig.minScale) {
+                            const newScale = Math.max(scale - 0.5, APP_CONFIG.jpgConfig.minScale);
+                            return createCanvasWithScale(newScale);
+                        }
+                        
+                        // Jika masih terlalu besar setelah semua penyesuaian, kompres lebih lanjut
+                        return compressImageFurther(canvas);
+                    };
+                    
+                    // Fungsi untuk membuat canvas dengan skala yang diberikan
+                    const createCanvasWithScale = async (scale) => {
+                        // Opsi untuk html2canvas dengan skala yang disesuaikan
+                        const options = {
+                            backgroundColor: '#ffffff',
+                            scale: scale,
+                            useCORS: true,
+                            logging: false,
+                            allowTaint: false,
+                            width: wrapper.scrollWidth,
+                            height: wrapper.scrollHeight,
+                            scrollX: 0,
+                            scrollY: 0,
+                            letterRendering: true,
+                            foreignObjectRendering: false, // Nonaktifkan untuk menghindari masalah
+                            removeContainer: true,
+                            imageTimeout: 15000,
+                            onclone: (clonedDoc) => {
+                                // Pastikan semua styling diterapkan dengan benar di clone
+                                const clonedWrapper = clonedDoc.querySelector('.capture-wrapper');
+                                if (clonedWrapper) {
+                                    clonedWrapper.style.width = '1200px';
+                                    clonedWrapper.style.maxWidth = '1200px';
+                                    
+                                    // Terapkan styling ke tabel di clone
+                                    const clonedTable = clonedWrapper.querySelector('table');
+                                    if (clonedTable) {
+                                        clonedTable.style.width = '100%';
+                                        clonedTable.style.borderCollapse = 'collapse';
+                                        clonedTable.style.backgroundColor = '#ffffff';
+                                        
+                                        // Terapkan styling ke header di clone
+                                        const clonedHeaders = clonedTable.querySelectorAll('thead th');
+                                        clonedHeaders.forEach(th => {
+                                            th.style.backgroundColor = '#4361ee';
+                                            th.style.color = '#ffffff';
+                                        });
+                                        
+                                        // Terapkan styling ke sel data di clone
+                                        const clonedCells = clonedTable.querySelectorAll('tbody td');
+                                        clonedCells.forEach(td => {
+                                            td.style.borderBottom = '1px solid #dee2e6';
+                                            td.style.backgroundColor = '#ffffff';
+                                        });
+                                        
+                                        // Terapkan styling ke sel kode inject di clone
+                                        const clonedKodeInject = clonedTable.querySelectorAll('.kode-inject');
+                                        clonedKodeInject.forEach(cell => {
+                                            cell.style.backgroundColor = '#ffffff';
+                                            cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                                        });
+                                    }
+                                }
+                            }
+                        };
+                        
+                        const canvas = await html2canvas(wrapper, options);
+                        return checkFileSizeAndAdjust(canvas, APP_CONFIG.jpgConfig.initialQuality, scale);
+                    };
+                    
+                    // Fungsi untuk kompres gambar lebih lanjut jika diperlukan
+                    const compressImageFurther = async (canvas) => {
+                        // Buat gambar baru dengan kualitas lebih rendah
+                        const img = new Image();
+                        img.src = canvas.toDataURL('image/jpeg', APP_CONFIG.jpgConfig.minQuality);
+                        
+                        // Tunggu gambar dimuat
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = reject;
+                        });
+                        
+                        // Buat canvas baru dengan ukuran yang lebih kecil
+                        const newCanvas = document.createElement('canvas');
+                        const ctx = newCanvas.getContext('2d');
+                        
+                        // Hitung ukuran baru (75% dari ukuran asli)
+                        const newWidth = canvas.width * 0.75;
+                        const newHeight = canvas.height * 0.75;
+                        
+                        // Set ukuran canvas baru
+                        newCanvas.width = newWidth;
+                        newCanvas.height = newHeight;
+                        
+                        // Gambar gambar yang dikompres ke canvas baru
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                        
+                        // Konversi ke JPG dengan kualitas minimum
+                        const imgData = newCanvas.toDataURL('image/jpeg', APP_CONFIG.jpgConfig.minQuality);
+                        
+                        // Periksa ukuran file
+                        const fileSize = Math.round((imgData.length * 0.75) / 1024); // Konversi ke KB
+                        
+                        return { success: true, imgData, fileSize, compressed: true };
+                    };
+                    
+                    // Mulai proses pembuatan gambar
+                    createCanvasWithScale(APP_CONFIG.jpgConfig.scale)
+                        .then(async (result) => {
+                            if (result.success) {
+                                // Hapus wrapper sementara
+                                document.body.removeChild(wrapper);
+                                
+                                // Kembalikan mode asli
+                                APP_STATE.isNightMode = originalNightMode;
+                                if (originalNightMode) {
+                                    document.body.classList.add('night-mode');
+                                }
+                                
+                                // Buat nama file
+                                const fileName = `Laporan_Stock_Produksi_${currentNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+                                
+                                try {
+                                    // Unduh gambar
+                                    await downloadImage(result.imgData, fileName);
+                                    
+                                    // Tampilkan pesan sukses
+                                    const fileSizeMB = (result.fileSize / 1024).toFixed(2);
+                                    AppUI.showToast(`JPG berhasil diunduh (${fileSizeMB} MB).${result.compressed ? ' Gambar dikompres untuk memenuhi batas ukuran.' : ''}`);
+                                } catch (downloadError) {
+                                    console.error('Download Error:', downloadError);
+                                    AppUI.showToast('Gagal mengunduh file. Silakan coba lagi.', true);
+                                }
+                            } else {
+                                throw new Error('Gagal membuat gambar yang memenuhi syarat ukuran.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('html2canvas Error:', error);
+                            AppUI.showToast('Gagal membuat JPG. Silakan coba lagi.', true);
+                            // Hapus wrapper jika terjadi error
+                            if (document.body.contains(wrapper)) {
+                                document.body.removeChild(wrapper);
+                            }
+                            // Kembalikan mode asli
+                            APP_STATE.isNightMode = originalNightMode;
+                            if (originalNightMode) {
+                                document.body.classList.add('night-mode');
+                            }
+                        })
+                        .finally(() => {
+                            AppUI.hideLoadingIndicator();
+                        });
+                    
+                } catch (e) {
+                    console.error('Share JPG Error:', e);
+                    AppUI.showToast(`Gagal membuat JPG: ${e.message || 'Operasi tidak didukung oleh browser.'}`, true);
+                    AppUI.hideLoadingIndicator();
+                }
+            },
+            
             shareAsJpg: () => {
                 AppUI.showLoadingIndicator();
                 
@@ -3792,6 +4567,9 @@
                     if (!Utils.checkLibraryAvailability('html2canvas', html2canvas)) {
                         throw new Error('Library html2canvas tidak tersedia.');
                     }
+                    
+                    // Simpan state mode saat ini
+                    const currentNightMode = APP_STATE.isNightMode;
                     
                     // Tentukan tabel yang akan diambil
                     let targetTable;
@@ -3811,16 +4589,38 @@
                         throw new Error('Tabel tidak ditemukan.');
                     }
                     
+                    // Simpan state mode saat ini
+                    const originalNightMode = APP_STATE.isNightMode;
+                    
+                    // Paksa mode terang untuk kualitas gambar terbaik
+                    APP_STATE.isNightMode = false;
+                    document.body.classList.remove('night-mode');
+                    
                     // Buat elemen wrapper sementara untuk menampung tabel
                     const wrapper = document.createElement('div');
+                    wrapper.className = 'capture-wrapper';
                     wrapper.style.position = 'absolute';
-                    wrapper.style.left = '-9999px';
-                    wrapper.style.width = 'auto';
-                    wrapper.style.backgroundColor = APP_STATE.isNightMode ? '#2b2d42' : '#ffffff';
+                    wrapper.style.top = '0';
+                    wrapper.style.left = '0';
+                    wrapper.style.width = '1200px';
+                    wrapper.style.maxWidth = '1200px';
+                    wrapper.style.backgroundColor = '#ffffff';
                     wrapper.style.padding = '20px';
                     wrapper.style.boxSizing = 'border-box';
-                    wrapper.style.fontFamily = "'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif";
-                    wrapper.style.color = APP_STATE.isNightMode ? '#ffffff' : '#2b2d42';
+                    wrapper.style.fontFamily = "-apple-system, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif";
+                    wrapper.style.color = '#2b2d42';
+                    wrapper.style.zIndex = '10000';
+                    
+                    // Tambahkan header informasi
+                    const headerInfo = document.createElement('div');
+                    headerInfo.className = 'capture-header';
+                    headerInfo.innerHTML = `
+                        <h1>PT FUJI SEAT INDONESIA</h1>
+                        <h2>Laporan Data Stock Akhir Proses Div.INJECTION</h2>
+                        <h3>${tableTitle}</h3>
+                        <p>Shift: ${currentNightMode ? 'NIGHT' : 'DAY'} | Tanggal: ${DOM.currentDate.textContent}</p>
+                    `;
+                    wrapper.appendChild(headerInfo);
                     
                     // Salin tabel ke wrapper
                     const tableClone = targetTable.cloneNode(true);
@@ -3829,11 +4629,13 @@
                     tableClone.style.width = '100%';
                     tableClone.style.borderCollapse = 'collapse';
                     tableClone.style.fontSize = '14px';
+                    tableClone.style.marginBottom = '20px';
+                    tableClone.style.backgroundColor = '#ffffff';
                     
                     // Styling untuk header tabel
                     const headerCells = tableClone.querySelectorAll('thead th');
                     headerCells.forEach(th => {
-                        th.style.backgroundColor = APP_STATE.isNightMode ? '#4895ef' : '#4361ee';
+                        th.style.backgroundColor = '#4361ee';
                         th.style.color = '#ffffff';
                         th.style.fontWeight = '600';
                         th.style.padding = '12px';
@@ -3846,7 +4648,8 @@
                     dataCells.forEach(td => {
                         td.style.padding = '12px';
                         td.style.textAlign = 'center';
-                        td.style.borderBottom = `1px solid ${APP_STATE.isNightMode ? 'rgba(255,255,255,0.1)' : '#dee2e6'}`;
+                        td.style.borderBottom = '1px solid #dee2e6';
+                        td.style.backgroundColor = '#ffffff';
                     });
                     
                     // Styling untuk sel dengan khusus
@@ -3854,56 +4657,39 @@
                     kodeInjectCells.forEach(cell => {
                         cell.style.fontWeight = '600';
                         cell.style.textAlign = 'left';
+                        cell.style.backgroundColor = '#ffffff';
+                        cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
                     });
                     
                     const resultCells = tableClone.querySelectorAll('.result-cell');
                     resultCells.forEach(cell => {
                         cell.style.fontWeight = '600';
+                        cell.style.backgroundColor = '#ffffff';
                     });
                     
                     const positiveCells = tableClone.querySelectorAll('.positive');
                     positiveCells.forEach(cell => {
                         cell.style.color = '#06d6a0';
+                        cell.style.backgroundColor = '#ffffff';
                     });
                     
                     const negativeCells = tableClone.querySelectorAll('.negative');
                     negativeCells.forEach(cell => {
                         cell.style.color = '#ef476f';
+                        cell.style.backgroundColor = '#ffffff';
                     });
                     
                     const zeroCells = tableClone.querySelectorAll('.zero');
                     zeroCells.forEach(cell => {
                         cell.style.color = '#8d99ae';
+                        cell.style.backgroundColor = '#ffffff';
                     });
                     
                     wrapper.appendChild(tableClone);
                     
-                    // Tambahkan header informasi
-                    const headerInfo = document.createElement('div');
-                    headerInfo.style.marginBottom = '20px';
-                    headerInfo.style.textAlign = 'center';
-                    headerInfo.innerHTML = `
-                        <h1 style="color: ${APP_STATE.isNightMode ? '#4895ef' : '#4361ee'}; margin-bottom: 10px; font-size: 24px;">
-                            PT FUJI SEAT INDONESIA
-                        </h1>
-                        <h2 style="color: ${APP_STATE.isNightMode ? '#ffffff' : '#2b2d42'}; margin-bottom: 8px; font-size: 18px;">
-                            Laporan Data Stock Akhir Proses Div.INJECTION
-                        </h2>
-                        <h3 style="color: ${APP_STATE.isNightMode ? '#8d99ae' : '#6c757d'}; margin-bottom: 5px; font-size: 16px;">
-                            ${tableTitle}
-                        </h3>
-                        <p style="color: ${APP_STATE.isNightMode ? '#8d99ae' : '#6c757d'}; font-size: 14px;">
-                            Shift: ${APP_STATE.isNightMode ? 'NIGHT' : 'DAY'} | Tanggal: ${DOM.currentDate.textContent}
-                        </p>
-                    `;
-                    wrapper.insertBefore(headerInfo, tableClone);
-                    
                     // Tambahkan footer informasi
                     const footerInfo = document.createElement('div');
-                    footerInfo.style.marginTop = '20px';
-                    footerInfo.style.textAlign = 'center';
-                    footerInfo.style.fontSize = '12px';
-                    footerInfo.style.color = APP_STATE.isNightMode ? '#8d99ae' : '#6c757d';
+                    footerInfo.className = 'capture-footer';
                     footerInfo.innerHTML = `
                         <p>© 2025 Laporan Produksi Harian - PT Fuji Seat Indonesia</p>
                         <p>Dibuat pada: ${new Date().toLocaleString('id-ID')}</p>
@@ -3913,49 +4699,200 @@
                     // Tambahkan wrapper ke body
                     document.body.appendChild(wrapper);
                     
-                    // Opsi untuk html2canvas dengan kualitas tinggi
-                    const options = {
-                        backgroundColor: APP_STATE.isNightMode ? '#2b2d42' : '#ffffff',
-                        scale: 2,
-                        useCORS: true,
-                        logging: false,
-                        allowTaint: false,
-                        width: wrapper.scrollWidth,
-                        height: wrapper.scrollHeight,
-                        scrollX: 0,
-                        scrollY: 0,
-                        windowWidth: wrapper.scrollWidth,
-                        windowHeight: wrapper.scrollHeight
+                    // Fungsi untuk mengunduh file
+                    const downloadImage = (imgData, fileName) => {
+                        return new Promise((resolve, reject) => {
+                            try {
+                                // Buat link download
+                                const link = document.createElement('a');
+                                link.download = fileName;
+                                link.href = imgData;
+                                
+                                // Tambahkan ke DOM
+                                document.body.appendChild(link);
+                                
+                                // Trigger klik
+                                link.click();
+                                
+                                // Hapus dari DOM
+                                document.body.removeChild(link);
+                                
+                                resolve(true);
+                            } catch (error) {
+                                reject(error);
+                            }
+                        });
                     };
                     
-                    html2canvas(wrapper, options).then(canvas => {
-                        // Hapus wrapper sementara
-                        document.body.removeChild(wrapper);
+                    // Fungsi untuk memeriksa ukuran file dan menyesuaikan kualitas jika diperlukan
+                    const checkFileSizeAndAdjust = async (canvas, quality, scale) => {
+                        // Konversi ke JPG dengan kualitas yang diberikan
+                        const imgData = canvas.toDataURL('image/jpeg', quality);
                         
-                        // Konversi ke JPG dengan kualitas tinggi
-                        const imgData = canvas.toDataURL('image/jpeg', 0.9);
+                        // Periksa ukuran file dalam bytes
+                        const fileSize = Math.round((imgData.length * 0.75) / 1024); // Konversi ke KB
                         
-                        // Buat link download
-                        const link = document.createElement('a');
-                        const fileName = `Laporan_Produksi_${APP_STATE.isNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
-                        
-                        link.download = fileName;
-                        link.href = imgData;
-                        document.body.appendChild(link);
-                        link.click();
-                        document.body.removeChild(link);
-                        
-                        AppUI.showToast('JPG berhasil dibuat dan diunduh.');
-                    }).catch(error => {
-                        console.error('html2canvas Error:', error);
-                        AppUI.showToast('Gagal membuat JPG. Silakan coba lagi.', true);
-                        // Hapus wrapper jika terjadi error
-                        if (document.body.contains(wrapper)) {
-                            document.body.removeChild(wrapper);
+                        // Jika ukuran file masih di bawah batas, kembalikan data
+                        if (fileSize <= APP_CONFIG.jpgConfig.maxSize / 1024) {
+                            return { success: true, imgData, fileSize };
                         }
-                    }).finally(() => {
-                        AppUI.hideLoadingIndicator();
-                    });
+                        
+                        // Jika masih terlalu besar, kurangi kualitas atau skala
+                        if (quality > APP_CONFIG.jpgConfig.minQuality) {
+                            const newQuality = Math.max(quality - 0.1, APP_CONFIG.jpgConfig.minQuality);
+                            return checkFileSizeAndAdjust(canvas, newQuality, scale);
+                        } else if (scale > APP_CONFIG.jpgConfig.minScale) {
+                            const newScale = Math.max(scale - 0.5, APP_CONFIG.jpgConfig.minScale);
+                            return createCanvasWithScale(newScale);
+                        }
+                        
+                        // Jika masih terlalu besar setelah semua penyesuaian, kompres lebih lanjut
+                        return compressImageFurther(canvas);
+                    };
+                    
+                    // Fungsi untuk membuat canvas dengan skala yang diberikan
+                    const createCanvasWithScale = async (scale) => {
+                        // Opsi untuk html2canvas dengan skala yang disesuaikan
+                        const options = {
+                            backgroundColor: '#ffffff',
+                            scale: scale,
+                            useCORS: true,
+                            logging: false,
+                            allowTaint: false,
+                            width: wrapper.scrollWidth,
+                            height: wrapper.scrollHeight,
+                            scrollX: 0,
+                            scrollY: 0,
+                            letterRendering: true,
+                            foreignObjectRendering: false, // Nonaktifkan untuk menghindari masalah
+                            removeContainer: true,
+                            imageTimeout: 15000,
+                            onclone: (clonedDoc) => {
+                                // Pastikan semua styling diterapkan dengan benar di clone
+                                const clonedWrapper = clonedDoc.querySelector('.capture-wrapper');
+                                if (clonedWrapper) {
+                                    clonedWrapper.style.width = '1200px';
+                                    clonedWrapper.style.maxWidth = '1200px';
+                                    
+                                    // Terapkan styling ke tabel di clone
+                                    const clonedTable = clonedWrapper.querySelector('table');
+                                    if (clonedTable) {
+                                        clonedTable.style.width = '100%';
+                                        clonedTable.style.borderCollapse = 'collapse';
+                                        clonedTable.style.backgroundColor = '#ffffff';
+                                        
+                                        // Terapkan styling ke header di clone
+                                        const clonedHeaders = clonedTable.querySelectorAll('thead th');
+                                        clonedHeaders.forEach(th => {
+                                            th.style.backgroundColor = '#4361ee';
+                                            th.style.color = '#ffffff';
+                                        });
+                                        
+                                        // Terapkan styling ke sel data di clone
+                                        const clonedCells = clonedTable.querySelectorAll('tbody td');
+                                        clonedCells.forEach(td => {
+                                            td.style.borderBottom = '1px solid #dee2e6';
+                                            td.style.backgroundColor = '#ffffff';
+                                        });
+                                        
+                                        // Terapkan styling ke sel kode inject di clone
+                                        const clonedKodeInject = clonedTable.querySelectorAll('.kode-inject');
+                                        clonedKodeInject.forEach(cell => {
+                                            cell.style.backgroundColor = '#ffffff';
+                                            cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                                        });
+                                    }
+                                }
+                            }
+                        };
+                        
+                        const canvas = await html2canvas(wrapper, options);
+                        return checkFileSizeAndAdjust(canvas, APP_CONFIG.jpgConfig.initialQuality, scale);
+                    };
+                    
+                    // Fungsi untuk kompres gambar lebih lanjut jika diperlukan
+                    const compressImageFurther = async (canvas) => {
+                        // Buat gambar baru dengan kualitas lebih rendah
+                        const img = new Image();
+                        img.src = canvas.toDataURL('image/jpeg', APP_CONFIG.jpgConfig.minQuality);
+                        
+                        // Tunggu gambar dimuat
+                        await new Promise((resolve, reject) => {
+                            img.onload = resolve;
+                            img.onerror = reject;
+                        });
+                        
+                        // Buat canvas baru dengan ukuran yang lebih kecil
+                        const newCanvas = document.createElement('canvas');
+                        const ctx = newCanvas.getContext('2d');
+                        
+                        // Hitung ukuran baru (75% dari ukuran asli)
+                        const newWidth = canvas.width * 0.75;
+                        const newHeight = canvas.height * 0.75;
+                        
+                        // Set ukuran canvas baru
+                        newCanvas.width = newWidth;
+                        newCanvas.height = newHeight;
+                        
+                        // Gambar gambar yang dikompres ke canvas baru
+                        ctx.drawImage(img, 0, 0, newWidth, newHeight);
+                        
+                        // Konversi ke JPG dengan kualitas minimum
+                        const imgData = newCanvas.toDataURL('image/jpeg', APP_CONFIG.jpgConfig.minQuality);
+                        
+                        // Periksa ukuran file
+                        const fileSize = Math.round((imgData.length * 0.75) / 1024); // Konversi ke KB
+                        
+                        return { success: true, imgData, fileSize, compressed: true };
+                    };
+                    
+                    // Mulai proses pembuatan gambar
+                    createCanvasWithScale(APP_CONFIG.jpgConfig.scale)
+                        .then(async (result) => {
+                            if (result.success) {
+                                // Hapus wrapper sementara
+                                document.body.removeChild(wrapper);
+                                
+                                // Kembalikan mode asli
+                                APP_STATE.isNightMode = originalNightMode;
+                                if (originalNightMode) {
+                                    document.body.classList.add('night-mode');
+                                }
+                                
+                                // Buat nama file
+                                const fileName = `Laporan_Produksi_${currentNightMode ? 'Night' : 'Day'}_${new Date().toISOString().slice(0, 10)}.jpg`;
+                                
+                                try {
+                                    // Unduh gambar
+                                    await downloadImage(result.imgData, fileName);
+                                    
+                                    // Tampilkan pesan sukses
+                                    const fileSizeMB = (result.fileSize / 1024).toFixed(2);
+                                    AppUI.showToast(`JPG berhasil diunduh (${fileSizeMB} MB).${result.compressed ? ' Gambar dikompres untuk memenuhi batas ukuran.' : ''}`);
+                                } catch (downloadError) {
+                                    console.error('Download Error:', downloadError);
+                                    AppUI.showToast('Gagal mengunduh file. Silakan coba lagi.', true);
+                                }
+                            } else {
+                                throw new Error('Gagal membuat gambar yang memenuhi syarat ukuran.');
+                            }
+                        })
+                        .catch(error => {
+                            console.error('html2canvas Error:', error);
+                            AppUI.showToast('Gagal membuat JPG. Silakan coba lagi.', true);
+                            // Hapus wrapper jika terjadi error
+                            if (document.body.contains(wrapper)) {
+                                document.body.removeChild(wrapper);
+                            }
+                            // Kembalikan mode asli
+                            APP_STATE.isNightMode = originalNightMode;
+                            if (originalNightMode) {
+                                document.body.classList.add('night-mode');
+                            }
+                        })
+                        .finally(() => {
+                            AppUI.hideLoadingIndicator();
+                        });
                     
                 } catch (e) {
                     console.error('Share JPG Error:', e);
@@ -3968,16 +4905,5 @@
         // ===== INISIALISASI APLIKASI =====
         document.addEventListener('DOMContentLoaded', AppCore.init);
     </script>
-    <script>
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    const swUrl = './sw.js';
-    navigator.serviceWorker
-      .register(swUrl, { scope: './' })
-      .then((reg) => console.log('Service worker registered:', reg.scope))
-      .catch((err) => console.error('Service worker registration failed:', err));
-  });
-}
-</script>
 </body>
-</html> perbaiki input koma dalam tabel perhitungan box dalam kolom ACT/BOX
+</html>
