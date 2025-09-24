@@ -25,17 +25,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-   --- a/index.html
-+++ b/index.html
-@@
--    <script src="./firebase-config.js"></script>
--    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
--    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
--    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
--    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
--    <script src="./auth-email-sync.js"></script>
--    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
-+    <script src="./auth-local-sync.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
     
     <style>
         /* CSS Variables */
@@ -80,19 +71,19 @@
             --shadow-md: 0 4px 16px rgba(0,0,0,0.12);
             --shadow-lg: 0 8px 24px rgba(0,0,0,0.16);
             
-            /* Typography */
+            /* Typography - PERUBAHAN: Ukuran font diperbesar */
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-size-sm: 0.875rem;
-            --font-size-base: 1rem;
-            --font-size-lg: 1.125rem;
-            --font-size-xl: 1.25rem;
-            --font-size-2xl: 1.5rem;
-            --font-size-3xl: 2rem;
-            --font-size-4xl: 2.5rem;
+            --font-size-sm: 0.975rem; /* Diubah dari 0.875rem */
+            --font-size-base: 1.1rem; /* Diubah dari 1rem */
+            --font-size-lg: 1.225rem; /* Diubah dari 1.125rem */
+            --font-size-xl: 1.375rem; /* Diubah dari 1.25rem */
+            --font-size-2xl: 1.65rem; /* Diubah dari 1.5rem */
+            --font-size-3xl: 2.2rem; /* Diubah dari 2rem */
+            --font-size-4xl: 2.75rem; /* Diubah dari 2.5rem */
             --line-height: 1.6;
             
-            /* Transisi */
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Transisi - Diubah menjadi none untuk menghilangkan efek transisi */
+            --transition: none;
         }
         
         /* Reset & Global Styles */
@@ -116,7 +107,6 @@
             color: var(--dark);
             min-height: 100vh;
             padding: var(--spacing-sm);
-            transition: var(--transition);
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
         }
@@ -148,7 +138,6 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         
         .cover-screen.hidden {
@@ -159,7 +148,6 @@
         .logo-container {
             text-align: center;
             margin-bottom: var(--spacing-xl);
-            animation: fadeInDown 0.8s ease forwards;
         }
         
         .logo-image {
@@ -171,7 +159,6 @@
             background-position: center;
             margin: 0 auto var(--spacing-lg);
             filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
-            animation: scaleIn 1s ease forwards;
         }
         
         .logo {
@@ -218,8 +205,6 @@
             height: 100%;
             background: rgba(255,255,255,0.1);
             transform: translateX(-100%);
-            transition: transform 0.6s ease;
-            z-index: -1;
         }
         
         .btn:hover::before {
@@ -258,8 +243,6 @@
             font-weight: 600;
             letter-spacing: 1px;
             backdrop-filter: blur(10px);
-            transition: var(--transition);
-            animation: pulse 2s infinite;
         }
         
         .enter-button:hover {
@@ -274,7 +257,6 @@
             display: none;
             width: 100%;
             max-width: 100%;
-            animation: fadeIn 0.5s ease forwards;
         }
         
         .container {
@@ -282,7 +264,6 @@
             border-radius: var(--radius-md);
             box-shadow: var(--shadow-lg);
             overflow: hidden;
-            transition: var(--transition);
         }
         
         body.night-mode .container {
@@ -296,7 +277,6 @@
             background: white;
             border-bottom: 1px solid var(--border-color);
             text-align: center;
-            transition: var(--transition);
         }
         
         body.night-mode header {
@@ -313,7 +293,6 @@
             justify-content: center;
             gap: var(--spacing-md);
             text-align: center;
-            transition: var(--transition);
         }
         
         body.night-mode h1 {
@@ -341,7 +320,6 @@
             padding: var(--spacing-md);
             background: var(--gray-light);
             border-radius: var(--radius-sm);
-            transition: var(--transition);
         }
         
         body.night-mode .mode-toggle {
@@ -354,7 +332,6 @@
             gap: var(--spacing-xs);
             font-weight: 500;
             color: var(--dark);
-            transition: var(--transition);
         }
         
         body.night-mode .mode-toggle .mode-label {
@@ -380,7 +357,6 @@
             inset: 0;
             background: linear-gradient(90deg, var(--primary), var(--primary-light));
             border-radius: 34px;
-            transition: var(--transition);
         }
         
         .slider:before {
@@ -392,7 +368,6 @@
             bottom: 4px;
             background: white;
             border-radius: 50%;
-            transition: var(--transition);
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
         }
         
@@ -404,7 +379,7 @@
             transform: translateX(30px);
         }
         
-        /* Tabel */
+        /* Tabel - PERUBAHAN: Font diperbesar */
         .table-container {
             overflow-x: auto;
             border-radius: var(--radius-sm);
@@ -413,7 +388,6 @@
             background: white;
             border: 1px solid var(--border-color);
             margin-bottom: var(--spacing-lg);
-            transition: var(--transition);
             -webkit-overflow-scrolling: touch;
             min-width: 100%;
             width: 100%;
@@ -473,7 +447,6 @@
             padding: var(--spacing-md);
             color: var(--primary);
             caption-side: top;
-            transition: var(--transition);
         }
         
         body.night-mode caption {
@@ -484,11 +457,11 @@
             padding: var(--spacing-sm);
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            transition: var(--transition);
             min-width: 100px;
             word-wrap: break-word;
             overflow-wrap: break-word;
             font-family: var(--font-family);
+            font-size: 1.1rem; /* PERUBAHAN: Font diperbesar */
         }
         
         body.night-mode th, 
@@ -505,7 +478,7 @@
             z-index: 10;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.85rem;
+            font-size: 1rem; /* PERUBAHAN: Font diperbesar dari 0.85rem */
             min-width: 120px;
         }
         
@@ -533,6 +506,7 @@
             z-index: 9;
             background: white;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+            font-size: 1.1rem; /* PERUBAHAN: Font diperbesar */
         }
         
         body.night-mode .kode-inject {
@@ -550,7 +524,6 @@
             font-size: var(--font-size-base);
             background: white;
             color: var(--dark);
-            transition: var(--transition);
             -webkit-appearance: none;
             -moz-appearance: textfield;
             font-family: var(--font-family);
@@ -630,7 +603,6 @@
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             color: white;
             box-shadow: var(--shadow-md);
-            transition: var(--transition);
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -650,7 +622,6 @@
             color: var(--gray);
             border-top: 1px solid var(--border-color);
             font-size: var(--font-size-sm);
-            transition: var(--transition);
         }
         
         body.night-mode .footer {
@@ -665,7 +636,6 @@
             border-bottom: 1px solid var(--border-color);
             overflow-x: auto;
             white-space: nowrap;
-            transition: var(--transition);
             -webkit-overflow-scrolling: touch;
         }
         
@@ -681,9 +651,9 @@
             color: var(--gray);
             border-bottom: 3px solid transparent;
             white-space: nowrap;
-            transition: var(--transition);
             position: relative;
             -webkit-tap-highlight-color: transparent;
+            font-size: 1.1rem; /* PERUBAHAN: Font diperbesar */
         }
         
         .tab::after {
@@ -694,7 +664,6 @@
             width: 0;
             height: 3px;
             background: var(--primary);
-            transition: width 0.3s ease;
         }
         
         body.night-mode .tab {
@@ -743,7 +712,6 @@
             opacity: 0;
             transform: translateX(100%);
             pointer-events: none;
-            transition: opacity 0.4s ease, transform 0.4s ease;
             overflow-x: hidden;
         }
         
@@ -764,7 +732,6 @@
             font-size: var(--font-size-sm);
             color: var(--info);
             border-left: 4px solid var(--info);
-            transition: var(--transition);
         }
         
         body.night-mode .import-instruction {
@@ -784,7 +751,6 @@
             border-radius: var(--radius-md);
             padding: var(--spacing-md);
             box-shadow: var(--shadow-md);
-            transition: var(--transition);
         }
         
         body.night-mode .modern-card {
@@ -803,7 +769,6 @@
             font-weight: 600;
             font-size: var(--font-size-base);
             cursor: pointer;
-            transition: var(--transition);
             position: relative;
             overflow: hidden;
             z-index: 1;
@@ -819,8 +784,6 @@
             height: 100%;
             background: rgba(255,255,255,0.1);
             transform: translateX(-100%);
-            transition: transform 0.6s ease;
-            z-index: -1;
         }
         
         .btn-modern:hover::before {
@@ -875,7 +838,7 @@
             border: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.85rem;
+            font-size: 1rem; /* PERUBAHAN: Font diperbesar dari 0.85rem */
             min-width: 120px;
         }
         
@@ -892,6 +855,7 @@
             border: none;
             border-bottom: 1px solid var(--border-color);
             min-width: 100px;
+            font-size: 1.1rem; /* PERUBAHAN: Font diperbesar */
         }
         
         body.night-mode .table-modern td {
@@ -903,7 +867,7 @@
             display: inline-block;
             padding: 2px 8px;
             border-radius: 50px;
-            font-size: 0.8rem;
+            font-size: 0.9rem; /* PERUBAHAN: Font diperbesar dari 0.8rem */
             font-weight: 600;
         }
         
@@ -946,7 +910,6 @@
             background: white;
             color: var(--dark);
             width: 100%;
-            transition: var(--transition);
         }
         
         body.night-mode .input-modern {
@@ -975,7 +938,6 @@
             padding-bottom: var(--spacing-sm);
             border-bottom: 2px solid var(--primary-light);
             display: inline-block;
-            transition: var(--transition);
         }
         
         body.night-mode .section-title {
@@ -1015,7 +977,6 @@
             justify-content: center;
             gap: var(--spacing-sm);
             box-shadow: var(--shadow-md);
-            transition: var(--transition);
             -webkit-tap-highlight-color: transparent;
         }
         
@@ -1043,8 +1004,6 @@
             align-items: center;
             justify-content: space-between;
             z-index: 1000;
-            transition: var(--transition);
-            animation: slideUp 0.5s ease forwards;
         }
         
         body.night-mode .install-prompt {
@@ -1170,7 +1129,6 @@
             z-index: 2000;
             opacity: 0;
             visibility: hidden;
-            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         
         .modal.active {
@@ -1186,7 +1144,6 @@
             width: 90%;
             box-shadow: var(--shadow-lg);
             transform: scale(0.9);
-            transition: transform 0.3s ease;
         }
         
         body.night-mode .modal-content {
@@ -1223,7 +1180,6 @@
             border-radius: var(--radius-sm);
             font-weight: 600;
             cursor: pointer;
-            transition: var(--transition);
         }
         
         .modal-button.cancel {
@@ -1288,6 +1244,11 @@
             th, td {
                 padding: var(--spacing-xs);
                 min-width: 80px;
+                font-size: 1rem; /* PERUBAHAN: Font diperbesar */
+            }
+            
+            .kode-inject {
+                font-size: 1rem; /* PERUBAHAN: Font diperbesar */
             }
             
             .floating-action-button {
@@ -1392,7 +1353,7 @@
             
             .tab {
                 padding: var(--spacing-sm) var(--spacing-md);
-                font-size: var(--font-size-sm);
+                font-size: 1rem; /* PERUBAHAN: Font diperbesar */
             }
             
             h1 {
@@ -1401,7 +1362,7 @@
             
             .action-button {
                 padding: 10px;
-                font-size: 0.8rem;
+                font-size: 0.9rem; /* PERUBAHAN: Font diperbesar */
             }
             
             .action-button i {
@@ -1436,12 +1397,12 @@
             th, td {
                 min-width: 70px;
                 padding: 6px;
-                font-size: 0.8rem;
+                font-size: 0.95rem; /* PERUBAHAN: Font diperbesar */
             }
             
             .kode-inject {
                 min-width: 100px;
-                font-size: 0.75rem;
+                font-size: 0.95rem; /* PERUBAHAN: Font diperbesar */
             }
         }
         
@@ -1452,7 +1413,7 @@
             
             .action-button {
                 padding: 10px;
-                font-size: 0.8rem;
+                font-size: 0.85rem; /* PERUBAHAN: Font diperbesar */
             }
             
             .action-button i {
@@ -1470,7 +1431,7 @@
             .action-button.import span,
             .action-button.reset span {
                 display: inline;
-                font-size: 0.7rem;
+                font-size: 0.75rem;
             }
             
             /* Sesuaikan padding untuk tombol dengan teks */
@@ -1504,8 +1465,6 @@
                 font-size: 0.7rem;
                 white-space: nowrap;
                 opacity: 0;
-                transition: opacity 0.3s;
-                pointer-events: none;
             }
             
             .action-button:not(.save):not(.jpg-share):not(.import):not(.reset):hover::after {
@@ -1540,12 +1499,12 @@
             th, td {
                 min-width: 60px;
                 padding: 4px;
-                font-size: 0.75rem;
+                font-size: 0.9rem; /* PERUBAHAN: Font diperbesar */
             }
             
             .kode-inject {
                 min-width: 90px;
-                font-size: 0.7rem;
+                font-size: 0.85rem; /* PERUBAHAN: Font diperbesar */
             }
             
             h1 {
@@ -1566,7 +1525,7 @@
                 width: 80px;
                 min-width: 80px;
                 max-width: 80px;
-                font-size: 0.75rem;
+                font-size: 0.85rem; /* PERUBAHAN: Font diperbesar */
                 padding: 6px 4px;
             }
             
@@ -1575,6 +1534,7 @@
                 min-width: 80px;
                 max-width: 80px;
                 padding: 6px 4px;
+                font-size: 0.85rem; /* PERUBAHAN: Font diperbesar */
             }
         }
         
@@ -1892,7 +1852,7 @@
             z-index: 11;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.85rem;
+            font-size: 1rem; /* PERUBAHAN: Font diperbesar dari 0.85rem */
             min-width: 120px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         }
@@ -1911,7 +1871,7 @@
             z-index: 11;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 0.85rem;
+            font-size: 1rem; /* PERUBAHAN: Font diperbesar dari 0.85rem */
             min-width: 120px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
         }
@@ -1919,60 +1879,6 @@
         body.night-mode #thirdTable th:first-child {
             background: linear-gradient(135deg, var(--info), #0d7ea0);
         }
-        /* === Readability & Motion Reduction Overrides === */
-
-/* Perbesar teks agar mudah dibaca di mobile */
-th {
-  font-size: 1rem !important;         /* ~16px */
-  line-height: 1.4 !important;
-}
-
-td,
-.kode-inject {
-  font-size: 1.125rem !important;     /* ~18px */
-  line-height: 1.5 !important;
-}
-
-input[type="number"],
-input[type="text"] {
-  font-size: 1.125rem !important;     /* selaras dgn sel tabel */
-  line-height: 1.4 !important;
-}
-
-/* Matikan transisi/animasi visual */
-:root {
-  --transition: none !important;
-}
-
-/* Nonaktifkan transisi & animasi pada komponen utama UI */
-html, body, body *,
-table, thead, tbody, tr, th, td,
-input, button, select, textarea,
-.btn, .btn::before,
-.btn-modern, .btn-modern::before,
-.nav-button, .action-button,
-.tab, .container, .table-container, .table-wrapper,
-.toggle-switch, .slider {
-  transition: none !important;
-  animation: none !important;
-}
-
-/* Hilangkan efek hover (angkat/transform) pada tombol */
-.btn:hover,
-.btn-modern:hover,
-.nav-button:hover,
-.action-button:hover {
-  transform: none !important;
-  box-shadow: inherit !important;
-}
-
-/* Pastikan elemen splash tidak menganimasikan apa pun */
-.enter-button,
-.logo-container,
-.logo-image {
-  animation: none !important;
-  transition: none !important;
-}
     </style>
 </head>
 <body>
@@ -4350,7 +4256,7 @@ input, button, select, textarea,
                     // Terapkan styling yang konsisten untuk tabel
                     tableClone.style.width = '100%';
                     tableClone.style.borderCollapse = 'collapse';
-                    tableClone.style.fontSize = '14px';
+                    tableClone.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     tableClone.style.marginBottom = '20px';
                     tableClone.style.backgroundColor = '#ffffff';
                     
@@ -4363,6 +4269,7 @@ input, button, select, textarea,
                         th.style.padding = '12px';
                         th.style.textAlign = 'center';
                         th.style.border = 'none';
+                        th.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     // Styling untuk sel data
@@ -4372,6 +4279,7 @@ input, button, select, textarea,
                         td.style.textAlign = 'center';
                         td.style.borderBottom = '1px solid #dee2e6';
                         td.style.backgroundColor = '#ffffff';
+                        td.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     // Styling untuk sel dengan khusus
@@ -4381,30 +4289,35 @@ input, button, select, textarea,
                         cell.style.textAlign = 'left';
                         cell.style.backgroundColor = '#ffffff';
                         cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const resultCells = tableClone.querySelectorAll('.result-cell');
                     resultCells.forEach(cell => {
                         cell.style.fontWeight = '600';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const positiveCells = tableClone.querySelectorAll('.positive');
                     positiveCells.forEach(cell => {
                         cell.style.color = '#06d6a0';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const negativeCells = tableClone.querySelectorAll('.negative');
                     negativeCells.forEach(cell => {
                         cell.style.color = '#ef476f';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const zeroCells = tableClone.querySelectorAll('.zero');
                     zeroCells.forEach(cell => {
                         cell.style.color = '#8d99ae';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     wrapper.appendChild(tableClone);
@@ -4508,6 +4421,7 @@ input, button, select, textarea,
                                         clonedHeaders.forEach(th => {
                                             th.style.backgroundColor = '#4361ee';
                                             th.style.color = '#ffffff';
+                                            th.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                         
                                         // Terapkan styling ke sel data di clone
@@ -4515,6 +4429,7 @@ input, button, select, textarea,
                                         clonedCells.forEach(td => {
                                             td.style.borderBottom = '1px solid #dee2e6';
                                             td.style.backgroundColor = '#ffffff';
+                                            td.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                         
                                         // Terapkan styling ke sel kode inject di clone
@@ -4522,6 +4437,7 @@ input, button, select, textarea,
                                         clonedKodeInject.forEach(cell => {
                                             cell.style.backgroundColor = '#ffffff';
                                             cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                                            cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                     }
                                 }
@@ -4691,7 +4607,7 @@ input, button, select, textarea,
                     // Terapkan styling yang konsisten untuk tabel
                     tableClone.style.width = '100%';
                     tableClone.style.borderCollapse = 'collapse';
-                    tableClone.style.fontSize = '14px';
+                    tableClone.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     tableClone.style.marginBottom = '20px';
                     tableClone.style.backgroundColor = '#ffffff';
                     
@@ -4704,6 +4620,7 @@ input, button, select, textarea,
                         th.style.padding = '12px';
                         th.style.textAlign = 'center';
                         th.style.border = 'none';
+                        th.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     // Styling untuk sel data
@@ -4713,6 +4630,7 @@ input, button, select, textarea,
                         td.style.textAlign = 'center';
                         td.style.borderBottom = '1px solid #dee2e6';
                         td.style.backgroundColor = '#ffffff';
+                        td.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     // Styling untuk sel dengan khusus
@@ -4722,30 +4640,35 @@ input, button, select, textarea,
                         cell.style.textAlign = 'left';
                         cell.style.backgroundColor = '#ffffff';
                         cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const resultCells = tableClone.querySelectorAll('.result-cell');
                     resultCells.forEach(cell => {
                         cell.style.fontWeight = '600';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const positiveCells = tableClone.querySelectorAll('.positive');
                     positiveCells.forEach(cell => {
                         cell.style.color = '#06d6a0';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const negativeCells = tableClone.querySelectorAll('.negative');
                     negativeCells.forEach(cell => {
                         cell.style.color = '#ef476f';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     const zeroCells = tableClone.querySelectorAll('.zero');
                     zeroCells.forEach(cell => {
                         cell.style.color = '#8d99ae';
                         cell.style.backgroundColor = '#ffffff';
+                        cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                     });
                     
                     wrapper.appendChild(tableClone);
@@ -4849,6 +4772,7 @@ input, button, select, textarea,
                                         clonedHeaders.forEach(th => {
                                             th.style.backgroundColor = '#4361ee';
                                             th.style.color = '#ffffff';
+                                            th.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                         
                                         // Terapkan styling ke sel data di clone
@@ -4856,6 +4780,7 @@ input, button, select, textarea,
                                         clonedCells.forEach(td => {
                                             td.style.borderBottom = '1px solid #dee2e6';
                                             td.style.backgroundColor = '#ffffff';
+                                            td.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                         
                                         // Terapkan styling ke sel kode inject di clone
@@ -4863,6 +4788,7 @@ input, button, select, textarea,
                                         clonedKodeInject.forEach(cell => {
                                             cell.style.backgroundColor = '#ffffff';
                                             cell.style.boxShadow = '2px 0 5px rgba(0,0,0,0.1)';
+                                            cell.style.fontSize = '16px'; // PERUBAHAN: Font diperbesar untuk capture
                                         });
                                     }
                                 }
