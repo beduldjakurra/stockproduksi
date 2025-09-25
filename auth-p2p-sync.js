@@ -39,11 +39,11 @@ function startSync(room) {
 
   // Listen perubahan data
   ymap.observe(event => {
-    // Kode untuk update aplikasi dari data sync, misal: reload data tabel
+    // Kode untuk update aplikasi dari data sync
     // console.log("Data berubah", ymap.toJSON());
   });
 
-  // Simpan objek ydoc/ymap/provider jika ingin digunakan aplikasi utama
+  // Simpan objek yjs di window agar bisa diakses aplikasi utama
   window.yjsSync = { ydoc, ymap, provider };
 }
 
