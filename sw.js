@@ -1,5 +1,5 @@
 /* PT Fuji Seat Indonesia - stockproduksi PWA Service Worker */
-const CACHE_VERSION = 'v1';
+const CACHE_VERSION = 'v2'; // bump versi agar cache lama dibuang
 const CACHE_NAME = `sp-${CACHE_VERSION}`;
 
 // Use relative paths so this works on GitHub Pages or subpaths
@@ -19,7 +19,6 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) =>
-        // Add each asset individually; skip if missing (prevents install failure before PR #3 is merged)
         Promise.all(
           PRECACHE_ASSETS.map((url) =>
             cache.add(url).catch(() => Promise.resolve())
@@ -46,14 +45,31 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  if (req.method !== 'GET') return; // only handle GET
+  if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
 
-  // Only handle same-origin requests
+  // Lewatkan request CDN modul langsung ke network (jangan diintersep SW)
+  if (url.hostname.includes('unpkg.com') || url.hostname.includes('cdn.jsdelivr.net')) {
+    return; // tidak memanggil respondWith -> fetch default
+  }
+
+  // Untuk file modul P2P lokal, gunakan network-first agar selalu dapat versi terbaru
+  if (url.origin === self.location.origin && url.pathname.endsWith('/auth-p2p-sync.js')) {
+    event.respondWith(
+      fetch(req).then(resp => {
+        const copy = resp.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
+        return resp;
+      }).catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Hanya handle same-origin requests lainnya
   if (url.origin !== self.location.origin) return;
 
-  // Navigation requests: network-first with offline fallback to cached shell
+  // Navigation requests: network-first dengan fallback ke shell
   if (req.mode === 'navigate') {
     event.respondWith(
       fetch(req)
@@ -67,7 +83,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets: cache-first with background fill
+  // Static assets: cache-first
   event.respondWith(
     caches.match(req).then((cached) => {
       if (cached) return cached;
