@@ -1,6 +1,6 @@
-// P2P SYNC PANEL UNTUK Yjs + y-webrtc
-import * as Y from "https://cdn.jsdelivr.net/npm/yjs@13.6.9/dist/yjs.mjs";
-import { WebrtcProvider } from "https://cdn.jsdelivr.net/npm/y-webrtc@10.6.6/dist/y-webrtc.mjs";
+// P2P SYNC PANEL UNTUK Yjs + y-webrtc (CDN unpkg + signaling + STUN fallback)
+import * as Y from "https://unpkg.com/yjs@13.6.9/dist/yjs.mjs";
+import { WebrtcProvider } from "https://unpkg.com/y-webrtc@10.6.6/dist/y-webrtc.mjs";
 
 // Membuat panel UI pairing
 function createPanel() {
@@ -28,33 +28,49 @@ function createPanel() {
 // Inisialisasi Yjs & pairing
 function startSync(room) {
   const ydoc = new Y.Doc();
-  const provider = new WebrtcProvider(room, ydoc);
+
+  const provider = new WebrtcProvider(room, ydoc, {
+    signaling: [
+      "wss://signaling.yjs.dev",
+      "wss://y-webrtc-signaling-eu.herokuapp.com",
+      "wss://y-webrtc-signaling-us.herokuapp.com"
+    ],
+    peerOpts: {
+      config: {
+        iceServers: [
+          { urls: "stun:stun.l.google.com:19302" }
+          // Jika tersedia TURN internal, tambahkan di sini:
+          // { urls: "turn:your.turn.server:3478", username: "user", credential: "pass" }
+        ]
+      }
+    }
+  });
 
   provider.on('status', event => {
-    document.getElementById('p2p-status').textContent = `Status: ${event.status}`;
+    const el = document.getElementById('p2p-status');
+    if (el) el.textContent = `Status: ${event.status}`;
   });
 
-  // Contoh: Sinkronisasi key-value sederhana (bisa diubah sesuai kebutuhan)
-  let ymap = ydoc.getMap("data");
-
-  // Listen perubahan data
-  ymap.observe(event => {
-    // Kode untuk update aplikasi dari data sync
-    // console.log("Data berubah", ymap.toJSON());
+  // Shared state sederhana
+  const ymap = ydoc.getMap("data");
+  ymap.observe(() => {
+    // Hook untuk update UI dari data sync (opsional)
+    // console.log("Data berubah:", ymap.toJSON());
   });
 
-  // Simpan objek yjs di window agar bisa diakses aplikasi utama
+  // Ekspos untuk debugging/manual test
   window.yjsSync = { ydoc, ymap, provider };
 }
 
 // Panel pairing
-const panel = createPanel();
+createPanel();
 document.getElementById('p2p-connect').onclick = () => {
   const kodeRoom = document.getElementById('p2p-room').value.trim();
+  const statusEl = document.getElementById('p2p-status');
   if (!kodeRoom) {
-    document.getElementById('p2p-status').textContent = 'Masukkan kode room!';
+    if (statusEl) statusEl.textContent = 'Masukkan kode room!';
     return;
   }
   startSync(kodeRoom);
-  document.getElementById('p2p-status').textContent = `Terhubung ke room: ${kodeRoom}`;
+  if (statusEl) statusEl.textContent = `Terhubung ke room: ${kodeRoom}`;
 };
