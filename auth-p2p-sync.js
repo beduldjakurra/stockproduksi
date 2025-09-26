@@ -36,8 +36,10 @@ async function importWithFallback(urls) {
   const errors = [];
   for (const url of urls) {
     try {
+      console.log(`Trying to import from: ${url}`);
       return await import(url);
     } catch (e) {
+      console.warn(`Failed to import from ${url}:`, e);
       errors.push({ url, error: String(e) });
     }
   }
@@ -63,7 +65,6 @@ async function importYWebRTC() {
 }
 
 async function importYWebSocket() {
-  // gunakan esm.sh sebagai ESM yang konsisten; unpkg/jsdelivr dengan ?module sebagai fallback
   return importWithFallback([
     'https://esm.sh/y-websocket@1.5.0',
     'https://unpkg.com/y-websocket@1.5.0/dist/y-websocket.js?module',
@@ -94,28 +95,27 @@ async function startWithWebRTC(Y, room) {
       config: {
         iceServers: [
           { urls: 'stun:stun.l.google.com:19302' }
-          // Tambahkan TURN jika tersedia:
+          // TURN optional:
           // { urls: 'turn:your.turn.server:3478', username: 'user', credential: 'pass' }
         ]
       }
     }
   });
 
-  // Tampilkan status signaling
   provider.on('status', (event) => {
-    setStatus(`Status: ${event.status}`);
+    console.log('WebRTC Status:', event.status);
+    setStatus(`WebRTC: ${event.status}`);
   });
 
-  // Tampilkan jumlah peers WebRTC
   provider.on('peers', ({ webrtcPeers }) => {
-    setStatus(`Status: connected (peers=${webrtcPeers.size || webrtcPeers.length || 0})`);
+    const peerCount = webrtcPeers.size || webrtcPeers.length || 0;
+    console.log('WebRTC Peers:', peerCount);
+    setStatus(`WebRTC: connected (peers=${peerCount})`);
   });
 
-  // Ekspos untuk debugging
   const ymap = ydoc.getMap('data');
   window.yjsSync = { ydoc, ymap, provider, transport: 'webrtc' };
 
-  // Cleanup function
   current.cleanup = () => {
     try { provider.destroy(); } catch {}
   };
@@ -132,7 +132,18 @@ async function startWithWebSocket(Y, room) {
   const wsProvider = new WebsocketProvider(serverUrl, room, ydoc, { connect: true });
 
   wsProvider.on('status', (event) => {
+    console.log('WebSocket Status:', event.status);
     setStatus(`WS: ${event.status}`);
+  });
+
+  wsProvider.on('connection-close', () => {
+    console.log('WebSocket connection closed');
+    setStatus('WS: disconnected');
+  });
+
+  wsProvider.on('connection-error', (error) => {
+    console.error('WebSocket connection error:', error);
+    setStatus('WS: connection error');
   });
 
   const ymap = ydoc.getMap('data');
@@ -149,34 +160,39 @@ async function startSync(room, transportMode = 'auto') {
   const statusEl = document.getElementById('p2p-status');
   try {
     setStatus('Menyiapkan modul...');
-
     const Y = await importY();
 
-    // Bersihkan sesi sebelumnya jika ada
+    // Bersihkan sesi sebelumnya
     if (typeof current.cleanup === 'function') {
       try { current.cleanup(); } catch {}
       current.cleanup = null;
     }
 
     if (transportMode === 'websocket') {
-      // Paksa WebSocket
       setStatus('Menghubungkan via WebSocket...');
       await startWithWebSocket(Y, room);
       return;
     }
 
     if (transportMode === 'webrtc') {
-      // Paksa WebRTC
       setStatus('Menghubungkan via WebRTC...');
       await startWithWebRTC(Y, room);
       return;
     }
 
-    // Auto: coba WebRTC dulu, fallback ke WebSocket jika tidak ada peers dalam timeout
+    // Auto: coba WebRTC dulu; JIKA import/gagal awal, langsung fallback ke WS.
     setStatus('Menghubungkan via WebRTC (auto)...');
-    const { provider } = await startWithWebRTC(Y, room);
+    let provider;
+    try {
+      ({ provider } = await startWithWebRTC(Y, room));
+    } catch (webrtcErr) {
+      console.warn('WebRTC path failed early, falling back to WebSocket:', webrtcErr);
+      setStatus('WebRTC tidak tersedia (CDN/diblokir). Fallback ke WebSocket...');
+      await startWithWebSocket(Y, room);
+      return;
+    }
 
-    // Jika dalam 10 detik belum ada peer WebRTC, fallback ke WebSocket
+    // Jika WebRTC berhasil import, tapi tidak menemukan peer, fallback setelah timeout
     let peersCount = 0;
     const peersHandler = ({ webrtcPeers }) => {
       peersCount = webrtcPeers.size || webrtcPeers.length || 0;
@@ -184,15 +200,14 @@ async function startSync(room, transportMode = 'auto') {
     provider.on('peers', peersHandler);
 
     setTimeout(async () => {
-      if (peersCount > 0) return; // sudah ada peer, tetap di WebRTC
-      // Fallback
+      if (peersCount > 0) return; // sudah ada peer, tetap pakai WebRTC
       try {
         setStatus('WebRTC belum menemukan peer, fallback ke WebSocket...');
         if (typeof current.cleanup === 'function') {
           try { current.cleanup(); } catch {}
           current.cleanup = null;
         }
-        const Y2 = await importY(); // pastikan Y tetap tersedia
+        const Y2 = await importY();
         await startWithWebSocket(Y2, room);
       } catch (fallbackErr) {
         console.error('Fallback WebSocket error:', fallbackErr);
@@ -204,9 +219,11 @@ async function startSync(room, transportMode = 'auto') {
     console.error('P2P Sync error:', err);
     if (statusEl) {
       const cdnErrors = Array.isArray(err?.details) ? err.details.map(d => `- ${d.url}: ${d.error}`).join('\n') : '';
-      statusEl.textContent = cdnErrors
-        ? `Gagal memuat library P2P dari semua CDN:\n${cdnErrors}\nCoba jaringan lain atau minta whitelist.`
-        : 'Gagal menginisialisasi P2P (CDN/Signaling mungkin diblokir). Coba jaringan lain atau minta whitelist.';
+      if (cdnErrors) {
+        statusEl.innerHTML = `<strong>Gagal memuat library P2P dari semua CDN:</strong><br><small style="line-height: 1.3;">${cdnErrors.replace(/\n/g, '<br>')}</small><br>Coba jaringan lain atau minta whitelist.`;
+      } else {
+        statusEl.textContent = 'Gagal menginisialisasi P2P (CDN/Signaling mungkin diblokir). Coba jaringan lain atau minta whitelist.';
+      }
     }
   }
 }
