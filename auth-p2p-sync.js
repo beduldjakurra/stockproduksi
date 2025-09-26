@@ -36,8 +36,10 @@ async function importWithFallback(urls) {
   const errors = [];
   for (const url of urls) {
     try {
+      console.log(`Trying to import from: ${url}`);
       return await import(url);
     } catch (e) {
+      console.warn(`Failed to import from ${url}:`, e);
       errors.push({ url, error: String(e) });
     }
   }
@@ -103,12 +105,15 @@ async function startWithWebRTC(Y, room) {
 
   // Tampilkan status signaling
   provider.on('status', (event) => {
-    setStatus(`Status: ${event.status}`);
+    console.log('WebRTC Status:', event.status);
+    setStatus(`WebRTC: ${event.status}`);
   });
 
   // Tampilkan jumlah peers WebRTC
   provider.on('peers', ({ webrtcPeers }) => {
-    setStatus(`Status: connected (peers=${webrtcPeers.size || webrtcPeers.length || 0})`);
+    const peerCount = webrtcPeers.size || webrtcPeers.length || 0;
+    console.log('WebRTC Peers:', peerCount);
+    setStatus(`WebRTC: connected (peers=${peerCount})`);
   });
 
   // Ekspos untuk debugging
@@ -132,7 +137,18 @@ async function startWithWebSocket(Y, room) {
   const wsProvider = new WebsocketProvider(serverUrl, room, ydoc, { connect: true });
 
   wsProvider.on('status', (event) => {
+    console.log('WebSocket Status:', event.status);
     setStatus(`WS: ${event.status}`);
+  });
+
+  wsProvider.on('connection-close', () => {
+    console.log('WebSocket connection closed');
+    setStatus('WS: disconnected');
+  });
+
+  wsProvider.on('connection-error', (error) => {
+    console.error('WebSocket connection error:', error);
+    setStatus('WS: connection error');
   });
 
   const ymap = ydoc.getMap('data');
@@ -204,9 +220,11 @@ async function startSync(room, transportMode = 'auto') {
     console.error('P2P Sync error:', err);
     if (statusEl) {
       const cdnErrors = Array.isArray(err?.details) ? err.details.map(d => `- ${d.url}: ${d.error}`).join('\n') : '';
-      statusEl.textContent = cdnErrors
-        ? `Gagal memuat library P2P dari semua CDN:\n${cdnErrors}\nCoba jaringan lain atau minta whitelist.`
-        : 'Gagal menginisialisasi P2P (CDN/Signaling mungkin diblokir). Coba jaringan lain atau minta whitelist.';
+      if (cdnErrors) {
+        statusEl.innerHTML = `<strong>Gagal memuat library P2P dari semua CDN:</strong><br><small style="line-height: 1.3;">${cdnErrors.replace(/\n/g, '<br>')}</small><br>Coba jaringan lain atau minta whitelist.`;
+      } else {
+        statusEl.textContent = 'Gagal menginisialisasi P2P (CDN/Signaling mungkin diblokir). Coba jaringan lain atau minta whitelist.';
+      }
     }
   }
 }
