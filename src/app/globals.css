@@ -18,3 +18,8 @@ h1 {
   font-size: 2rem;
   font-weight: 700;
 }
+
+/* Diagnostic class to visibly confirm CSS is active */
+.app-body {
+  background: #e9f2ff;
+}
