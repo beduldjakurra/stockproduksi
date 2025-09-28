@@ -1,4 +1,4 @@
-// Optimized P2P SYNC PANEL with improved readability, safety, and UX
+// Optimized P2P SYNC PANEL with improved error handling and detailed logging
 
 function createPanel() {
   const panel = document.createElement('div');
@@ -35,7 +35,7 @@ function createPanel() {
   return panel;
 }
 
-// Safe import with fallback
+// Enhanced import with fallback and logging
 async function importWithFallback(urls) {
   const errors = [];
   for (const url of urls) {
@@ -47,7 +47,7 @@ async function importWithFallback(urls) {
       errors.push({ url, error: e.message });
     }
   }
-  throw new Error(`[Import Failed] All sources failed: ${errors.map(err => err.url).join(', ')}`);
+  throw new Error(`[Import Failed] All sources failed: ${errors.map(err => `${err.url} (${err.error})`).join(', ')}]`);
 }
 
 // Modularized sync initiation
@@ -75,13 +75,14 @@ async function startSync(room, transport = 'auto') {
     // Auto mode
     try {
       await startWithWebRTC(Y, room);
-    } catch {
+    } catch (webrtcError) {
+      console.error('WebRTC failed:', webrtcError);
       setStatus('WebRTC failed, falling back to WebSocket...');
       await startWithWebSocket(Y, room);
     }
   } catch (err) {
     console.error('Sync Initialization Failed:', err);
-    setStatus('Failed to initialize sync. Check console for details.');
+    setStatus(`Failed to initialize sync. Error: ${err.message}`);
   }
 }
 
@@ -91,14 +92,14 @@ function setStatus(message) {
   if (el) el.textContent = `${new Date().toLocaleTimeString()} - ${message}`;
 }
 
-// Initialize panel
+// Initialize panel and set up button click
 createPanel();
 
 document.getElementById('p2p-connect').onclick = async () => {
   const room = document.getElementById('p2p-room').value.trim();
   const transport = document.getElementById('p2p-transport').value;
   if (!room) {
-    setStatus('Please enter a room code!');
+    setStatus('Please enter a valid room code!');
     return;
   }
   await startSync(room, transport);
