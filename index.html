@@ -50,13 +50,13 @@
             --gray-light: #edf2f4;
             --border-color: #dee2e6;
             
-            /* Tema Gelap */
-            --dark-bg: #1a1f2e;
-            --dark-surface: #252b3b;
+            /* Tema Gelap - PERUBAHAN: Background hitam pekat */
+            --dark-bg: #000000;
+            --dark-surface: #0a0a0a;
             --dark-text: #e4e6eb;
             --dark-border: rgba(255, 255, 255, 0.15);
             
-            /* Spasi & Ukuran */
+            /* Spasi & Ukuran - PERBAIKAN: Ukuran font yang lebih konsisten */
             --spacing-xs: 8px;
             --spacing-sm: 12px;
             --spacing-md: 16px;
@@ -71,50 +71,57 @@
             
             /* Typography - PERBAIKAN: Ukuran font yang lebih konsisten */
             --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            --font-size-sm: 0.975rem;
-            --font-size-base: 1.1rem;
-            --font-size-lg: 1.225rem;
-            --font-size-xl: 1.375rem;
-            --font-size-2xl: 1.65rem;
-            --font-size-3xl: 2.2rem;
-            --font-size-4xl: 2.75rem;
-            --line-height: 1.6;
+            --font-size-base: 16px; /* PERBAIKAN: Font size dasar yang jelas */
+            --font-size-sm: calc(var(--font-size-base) * 0.875); /* 14px */
+            --font-size-base-rem: 1.1rem;
+            --font-size-lg: calc(var(--font-size-base) * 1.125); /* 18px */
+            --font-size-xl: calc(var(--font-size-base) * 1.25); /* 20px */
+            --font-size-2xl: calc(var(--font-size-base) * 1.5); /* 24px */
+            --font-size-3xl: calc(var(--font-size-base) * 1.75); /* 28px */
+            --font-size-4xl: calc(var(--font-size-base) * 2); /* 32px */
+            --line-height-base: 1.5; /* PERBAIKAN: Line height yang konsisten */
+            --line-height-heading: 1.2;
             
             /* Transisi */
-            --transition: none;
+            --transition: all 0.3s ease;
         }
         
-        /* Reset & Global Styles */
-        *, *::before, *::after {
+        /* Reset & Global Styles - PERBAIKAN: CSS Reset yang lebih baik */
+        *,
+        *::before,
+        *::after {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
         }
         
         html {
+            font-size: var(--font-size-base); /* PERBAIKAN: Font size dasar yang jelas */
+            line-height: var(--line-height-base);
             scroll-behavior: smooth;
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
+            text-rendering: optimizeLegibility; /* PERBAIKAN: Font rendering yang lebih baik */
         }
         
         body {
             font-family: var(--font-family);
-            font-size: var(--font-size-base);
-            line-height: var(--line-height);
+            font-size: var(--font-size-base-rem);
+            line-height: var(--line-height-base);
             background: linear-gradient(135deg, #f5f7fa 0%, #e4e8f0 100%);
             color: var(--dark);
             min-height: 100vh;
             padding: var(--spacing-sm);
             -webkit-font-smoothing: antialiased;
-            -moz-osx-font-smoothing: grayscale;
+            -moz-osx-font-smoothing: grayscale; /* PERBAIKAN: Font rendering untuk Firefox */
         }
         
         body.night-mode {
-            background: linear-gradient(135deg, #1a1f2e 0%, #252b3b 100%);
+            background: var(--dark-bg); /* PERUBAHAN: Background hitam pekat */
             color: var(--dark-text);
         }
         
-        /* Cover Screen */
+        /* Cover Screen - PERBAIKAN: Tampilan lebih menarik */
         .cover-screen {
             position: fixed;
             inset: 0;
@@ -124,16 +131,31 @@
             justify-content: center;
             align-items: center;
             z-index: 2000;
+            overflow: hidden;
+        }
+        
+        .cover-screen::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiPjxkZWZzPjxwYXR0ZXJuIGlkPSJwYXR0ZXJuIiB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiIHBhdHRlcm5UcmFuc2Zvcm09InJvdGF0ZSg0NSkiPjxyZWN0IHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIvPjwvcGF0dGVybj48L2RlZnM+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsbD0idXJsKCNwYXR0ZXJuKSIvPjwvc3ZnPg==');
+            opacity: 0.4;
+            z-index: -1;
         }
         
         .cover-screen.hidden {
             opacity: 0;
             visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
         }
         
         .logo-container {
             text-align: center;
             margin-bottom: var(--spacing-xl);
+            animation: fadeInUp 0.8s ease forwards;
         }
         
         .logo-image {
@@ -160,11 +182,11 @@
             font-size: var(--font-size-lg);
             color: rgba(255,255,255,0.9);
             max-width: 600px;
-            line-height: 1.5;
+            line-height: var(--line-height-base);
             font-weight: 400;
         }
         
-        /* Buttons */
+        /* Buttons - PERBAIKAN: Tampilan lebih menarik */
         .btn {
             display: inline-flex;
             align-items: center;
@@ -174,12 +196,13 @@
             border: none;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             cursor: pointer;
             position: relative;
             overflow: hidden;
             z-index: 1;
             -webkit-tap-highlight-color: transparent;
+            transition: var(--transition);
         }
         
         .btn::before {
@@ -191,6 +214,7 @@
             height: 100%;
             background: rgba(255,255,255,0.1);
             transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
         
         .btn:hover::before {
@@ -229,6 +253,8 @@
             font-weight: 600;
             letter-spacing: 1px;
             backdrop-filter: blur(10px);
+            transition: var(--transition);
+            animation: fadeInUp 0.8s ease 0.3s both;
         }
         
         .enter-button:hover {
@@ -238,36 +264,59 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.1);
         }
         
-        /* Main App */
+        .enter-button i {
+            transition: transform 0.3s ease;
+        }
+        
+        .enter-button:hover i {
+            transform: translateX(3px);
+        }
+        
+        /* Main App - PERBAIKAN: Tampilan lebih menarik */
         .main-app {
             display: none;
             width: 100%;
             max-width: 100%;
+            animation: fadeIn 0.5s ease;
         }
         
         .container {
             background: white;
             border-radius: var(--radius-md);
-            box-shadow: var(--shadow-lg);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
             overflow: hidden;
+            transition: var(--transition);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         body.night-mode .container {
-            background: var(--dark-surface);
-            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            background: var(--dark-surface); /* PERUBAHAN: Background hitam pekat untuk container */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        /* Header & Navigasi */
+        /* Header & Navigasi - PERBAIKAN: Tampilan lebih menarik */
         header {
             padding: var(--spacing-lg);
             background: white;
             border-bottom: 1px solid var(--border-color);
             text-align: center;
+            position: relative;
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         body.night-mode header {
-            background: var(--dark-surface);
+            background: var(--dark-surface); /* PERUBAHAN: Background hitam pekat untuk header */
             border-bottom: 1px solid var(--dark-border);
+        }
+        
+        header::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 5px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent));
         }
         
         h1 {
@@ -279,6 +328,20 @@
             justify-content: center;
             gap: var(--spacing-md);
             text-align: center;
+            position: relative;
+            line-height: var(--line-height-heading); /* PERBAIKAN: Line height untuk heading */
+        }
+        
+        h1::after {
+            content: "";
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
         }
         
         body.night-mode h1 {
@@ -288,15 +351,25 @@
         .date {
             color: var(--gray);
             margin-bottom: var(--spacing-lg);
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-xs);
+        }
+        
+        .date::before {
+            content: "\f073";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
         }
         
         body.night-mode .date {
             color: var(--gray-light);
         }
         
-        /* Sync Status - NEW */
+        /* Sync Status - PERBAIKAN: Tampilan lebih menarik */
         .sync-status {
             display: flex;
             align-items: center;
@@ -308,11 +381,19 @@
             border-radius: var(--radius-sm);
             font-size: var(--font-size-sm);
             color: var(--gray);
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
 
         body.night-mode .sync-status {
             background: rgba(255,255,255,0.05);
             color: var(--gray-light);
+        }
+
+        .sync-status:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
         }
 
         .sync-status.syncing {
@@ -341,7 +422,7 @@
             100% { transform: rotate(360deg); }
         }
         
-        /* Mode Toggle */
+        /* Mode Toggle - PERBAIKAN: Tampilan lebih menarik */
         .mode-toggle {
             display: flex;
             align-items: center;
@@ -351,6 +432,8 @@
             padding: var(--spacing-md);
             background: var(--gray-light);
             border-radius: var(--radius-sm);
+            transition: var(--transition);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         body.night-mode .mode-toggle {
@@ -363,6 +446,7 @@
             gap: var(--spacing-xs);
             font-weight: 500;
             color: var(--dark);
+            transition: var(--transition);
         }
         
         body.night-mode .mode-toggle .mode-label {
@@ -388,6 +472,7 @@
             inset: 0;
             background: linear-gradient(90deg, var(--primary), var(--primary-light));
             border-radius: 34px;
+            transition: var(--transition);
         }
         
         .slider:before {
@@ -400,6 +485,7 @@
             background: white;
             border-radius: 50%;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: var(--transition);
         }
         
         input:checked + .slider {
@@ -410,7 +496,7 @@
             transform: translateX(30px);
         }
         
-        /* Tabel - PERBAIKAN: Ukuran font yang lebih konsisten */
+        /* Tabel - PERBAIKAN: Tampilan lebih menarik */
         .table-container {
             overflow-x: auto;
             border-radius: var(--radius-sm);
@@ -468,7 +554,7 @@
             width: 100%;
             border-collapse: collapse;
             min-width: 900px;
-            table-layout: fixed;
+            table-layout: fixed; /* PERBAIKAN: Table layout yang konsisten */
         }
         
         caption {
@@ -478,6 +564,17 @@
             padding: var(--spacing-md);
             color: var(--primary);
             caption-side: top;
+            position: relative;
+        }
+        
+        caption::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background: var(--primary);
         }
         
         body.night-mode caption {
@@ -492,7 +589,8 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             font-family: var(--font-family);
-            font-size: 1.1rem; /* PERBAIKAN: Ukuran font yang lebih konsisten */
+            font-size: 1.1rem;
+            transition: var(--transition);
         }
         
         body.night-mode th, 
@@ -509,8 +607,9 @@
             z-index: 10;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
             min-width: 120px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
         
         body.night-mode th {
@@ -525,59 +624,39 @@
             background: rgba(67, 97, 238, 0.1);
         }
         
-        /* MODIFIKASI UTAMA: Kolom KODE INJECT Sticky untuk Mobile */
         .kode-inject {
             font-weight: 600;
             text-align: left;
             color: var(--dark);
             font-family: var(--font-family);
             min-width: 150px;
-            position: -webkit-sticky; /* Untuk Safari dan browser WebKit */
             position: sticky;
             left: 0;
             z-index: 9;
             background: white;
             box-shadow: 2px 0 5px rgba(0,0,0,0.1);
             font-size: 1.1rem;
-            transform: translateZ(0); /* Optimasi performa */
-            -webkit-transform: translateZ(0);
-            will-change: transform; /* Optimasi performa */
         }
         
         body.night-mode .kode-inject {
             color: var(--dark-text);
-            background: var(--dark-surface);
+            background: var(--dark-surface); /* PERUBAHAN: Background hitam pekat untuk kode-inject */
         }
         
-        /* Header KODE INJECT Sticky */
-        th:first-child {
-            position: -webkit-sticky; /* Untuk Safari dan browser WebKit */
-            position: sticky;
-            left: 0;
-            z-index: 11;
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            transform: translateZ(0); /* Optimasi performa */
-            -webkit-transform: translateZ(0);
-            will-change: transform; /* Optimasi performa */
-        }
-        
-        body.night-mode th:first-child {
-            background: linear-gradient(135deg, var(--info), #0d7ea0);
-        }
-        
-        /* Input Fields */
+        /* Input Fields - PERBAIKAN: Tampilan lebih menarik */
         input[type="number"], input[type="text"] {
             width: 100%;
             padding: var(--spacing-sm);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
             text-align: center;
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             background: white;
             color: var(--dark);
             -webkit-appearance: none;
             -moz-appearance: textfield;
             font-family: var(--font-family);
+            transition: var(--transition);
         }
         
         input[type="number"]::-webkit-outer-spin-button,
@@ -588,7 +667,7 @@
         
         body.night-mode input[type="number"], 
         body.night-mode input[type="text"] {
-            background: rgba(255,255,255,0.05);
+            background: rgba(255,255,255,0.1); /* PERUBAHAN: Background lebih gelap untuk input */
             border: 1px solid var(--dark-border);
             color: var(--dark-text);
         }
@@ -606,9 +685,10 @@
             box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
         }
         
-        /* Result Cells */
+        /* Result Cells - PERBAIKAN: Tampilan lebih menarik */
         .result-cell {
             font-weight: 600;
+            position: relative;
         }
         
         .positive {
@@ -626,19 +706,21 @@
             font-weight: 600;
         }
         
-        /* Navigasi & Action Buttons */
+        /* Navigasi & Action Buttons - PERBAIKAN: Tampilan lebih menarik */
         .action-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: var(--spacing-sm);
             margin-bottom: var(--spacing-lg);
             justify-content: center;
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         .nav-buttons {
             display: flex;
             justify-content: space-between;
             padding: 0 var(--spacing-lg) var(--spacing-lg);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         .nav-button {
@@ -655,6 +737,7 @@
             color: white;
             box-shadow: var(--shadow-md);
             -webkit-tap-highlight-color: transparent;
+            transition: var(--transition);
         }
         
         .nav-button:hover {
@@ -662,17 +745,31 @@
             box-shadow: var(--shadow-lg);
         }
         
+        .nav-button i {
+            transition: transform 0.3s ease;
+        }
+        
+        .nav-button:hover i:first-child {
+            transform: translateX(-3px);
+        }
+        
+        .nav-button:hover i:last-child {
+            transform: translateX(3px);
+        }
+        
         .nav-button.calculate-button {
             background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
         }
         
-        /* Footer */
+        /* Footer - PERBAIKAN: Tampilan lebih menarik */
         .footer {
             text-align: center;
             padding: var(--spacing-lg);
             color: var(--gray);
             border-top: 1px solid var(--border-color);
             font-size: var(--font-size-sm);
+            position: relative;
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         body.night-mode .footer {
@@ -680,7 +777,19 @@
             border-top: 1px solid var(--dark-border);
         }
         
-        /* Tab Container */
+        .footer::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 1px;
+        }
+        
+        /* Tab Container - PERBAIKAN: Tampilan lebih menarik */
         .tab-container {
             display: flex;
             background: var(--gray-light);
@@ -688,6 +797,18 @@
             overflow-x: auto;
             white-space: nowrap;
             -webkit-overflow-scrolling: touch;
+            position: relative;
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
+        }
+        
+        .tab-container::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
         }
         
         body.night-mode .tab-container {
@@ -704,17 +825,19 @@
             white-space: nowrap;
             position: relative;
             -webkit-tap-highlight-color: transparent;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
+            transition: var(--transition);
         }
         
         .tab::after {
             content: "";
             position: absolute;
-            bottom: 0;
+            bottom: -3px;
             left: 0;
             width: 0;
             height: 3px;
             background: var(--primary);
+            transition: width 0.3s ease;
         }
         
         body.night-mode .tab {
@@ -745,12 +868,12 @@
             background: var(--primary-light);
         }
         
-        /* Tables Container */
+        /* Tables Container - PERBAIKAN: Tampilan lebih menarik */
         .tables-container {
             position: relative;
             overflow: hidden;
             min-height: 400px;
-            width: 100%;
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         .table-wrapper {
@@ -764,6 +887,7 @@
             transform: translateX(100%);
             pointer-events: none;
             overflow-x: hidden;
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
         
         .table-wrapper.active {
@@ -773,7 +897,7 @@
             position: relative;
         }
         
-        /* Import Instruction */
+        /* Import Instruction - PERBAIKAN: Tampilan lebih menarik */
         .import-instruction {
             text-align: center;
             margin: var(--spacing-md) 0;
@@ -783,6 +907,13 @@
             font-size: var(--font-size-sm);
             color: var(--info);
             border-left: 4px solid var(--info);
+            transition: var(--transition);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
+        }
+        
+        .import-instruction:hover {
+            background-color: rgba(17, 138, 178, 0.15);
+            transform: translateX(2px);
         }
         
         body.night-mode .import-instruction {
@@ -796,12 +927,18 @@
             display: none;
         }
         
-        /* Modern Card & Button Styles */
+        /* Modern Card & Button Styles - PERBAIKAN: Tampilan lebih menarik */
         .modern-card {
             background: white;
             border-radius: var(--radius-md);
             padding: var(--spacing-md);
             box-shadow: var(--shadow-md);
+            transition: var(--transition);
+        }
+        
+        .modern-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
         }
         
         body.night-mode .modern-card {
@@ -818,12 +955,13 @@
             border: none;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             cursor: pointer;
             position: relative;
             overflow: hidden;
             z-index: 1;
             -webkit-tap-highlight-color: transparent;
+            transition: var(--transition);
         }
         
         .btn-modern::before {
@@ -835,6 +973,7 @@
             height: 100%;
             background: rgba(255,255,255,0.1);
             transform: translateX(-100%);
+            transition: transform 0.3s ease;
         }
         
         .btn-modern:hover::before {
@@ -874,11 +1013,12 @@
             box-shadow: var(--shadow-lg);
         }
         
-        /* Table Modern */
+        /* Table Modern - PERBAIKAN: Tampilan lebih menarik */
         .table-modern {
             border-radius: var(--radius-sm);
             overflow: hidden;
             box-shadow: var(--shadow-md);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
         .table-modern thead th {
@@ -889,8 +1029,19 @@
             border: none;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
             min-width: 120px;
+            position: relative;
+        }
+        
+        .table-modern thead th::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: rgba(255,255,255,0.2);
         }
         
         .table-modern tbody tr:nth-child(even) {
@@ -906,20 +1057,25 @@
             border: none;
             border-bottom: 1px solid var(--border-color);
             min-width: 100px;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
         }
         
         body.night-mode .table-modern td {
             border-bottom: 1px solid var(--dark-border);
         }
         
-        /* Badge */
+        /* Badge - PERBAIKAN: Tampilan lebih menarik */
         .badge {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 50px;
             font-size: 0.9rem;
             font-weight: 600;
+            transition: var(--transition);
+        }
+        
+        .badge:hover {
+            transform: scale(1.05);
         }
         
         .badge-success {
@@ -952,19 +1108,20 @@
             color: var(--danger);
         }
         
-        /* Input Modern */
+        /* Input Modern - PERBAIKAN: Tampilan lebih menarik */
         .input-modern {
             padding: var(--spacing-sm) var(--spacing-md);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             background: white;
             color: var(--dark);
             width: 100%;
+            transition: var(--transition);
         }
         
         body.night-mode .input-modern {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.1); /* PERUBAHAN: Background lebih gelap untuk input-modern */
             border: 1px solid var(--dark-border);
             color: var(--dark-text);
         }
@@ -980,7 +1137,7 @@
             box-shadow: 0 0 0 3px rgba(72, 149, 239, 0.2);
         }
         
-        /* Section Title */
+        /* Section Title - PERBAIKAN: Tampilan lebih menarik */
         .section-title {
             font-size: var(--font-size-xl);
             font-weight: 700;
@@ -989,6 +1146,18 @@
             padding-bottom: var(--spacing-sm);
             border-bottom: 2px solid var(--primary-light);
             display: inline-block;
+            position: relative;
+            line-height: var(--line-height-heading); /* PERBAIKAN: Line height untuk heading */
+        }
+        
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -2px;
+            right: 0;
+            width: 30%;
+            height: 2px;
+            background: var(--secondary);
         }
         
         body.night-mode .section-title {
@@ -996,7 +1165,7 @@
             border-bottom: 2px solid var(--primary);
         }
         
-        /* Action Button Specific */
+        /* Action Button Specific - PERBAIKAN: Tampilan lebih menarik */
         .action-button.save {
             background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
             color: white;
@@ -1029,6 +1198,25 @@
             gap: var(--spacing-sm);
             box-shadow: var(--shadow-md);
             -webkit-tap-highlight-color: transparent;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .action-button::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: translateX(-100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .action-button:hover::before {
+            transform: translateX(0);
         }
         
         .action-button:hover {
@@ -1036,12 +1224,21 @@
             box-shadow: var(--shadow-lg);
         }
         
+        .action-button i {
+            transition: transform 0.3s ease;
+        }
+        
+        .action-button:hover i {
+            transform: scale(1.1);
+        }
+        
         /* Third Page Import */
         #thirdPageImport {
             margin-top: var(--spacing-md);
+            width: 100%; /* PERBAIKAN: Lebar yang jelas */
         }
         
-        /* Progress Bar */
+        /* Progress Bar - PERBAIKAN: Tampilan lebih menarik */
         .progress-bar {
             position: fixed;
             top: 0;
@@ -1051,9 +1248,10 @@
             width: 0;
             z-index: 1000;
             box-shadow: 0 0 10px rgba(67, 97, 238, 0.5);
+            transition: width 0.3s ease;
         }
         
-        /* Modal */
+        /* Modal - PERBAIKAN: Tampilan lebih menarik */
         .modal {
             position: fixed;
             top: 0;
@@ -1067,6 +1265,7 @@
             z-index: 2000;
             opacity: 0;
             visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         
         .modal.active {
@@ -1082,10 +1281,11 @@
             width: 90%;
             box-shadow: var(--shadow-lg);
             transform: scale(0.9);
+            transition: transform 0.3s ease;
         }
         
         body.night-mode .modal-content {
-            background: var(--dark-surface);
+            background: var(--dark-surface); /* PERUBAHAN: Background hitam pekat untuk modal */
         }
         
         .modal.active .modal-content {
@@ -1095,6 +1295,9 @@
         .modal-content h3 {
             margin-bottom: var(--spacing-md);
             color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
         
         .modal-content p {
@@ -1118,6 +1321,7 @@
             border-radius: var(--radius-sm);
             font-weight: 600;
             cursor: pointer;
+            transition: var(--transition);
         }
         
         .modal-button.cancel {
@@ -1125,12 +1329,21 @@
             color: var(--dark);
         }
         
+        .modal-button.cancel:hover {
+            background: var(--gray);
+            color: white;
+        }
+        
         .modal-button.confirm {
             background: var(--danger);
             color: white;
         }
         
-        /* Toast Notification */
+        .modal-button.confirm:hover {
+            background: var(--danger-dark);
+        }
+        
+        /* Toast Notification - PERBAIKAN: Tampilan lebih menarik */
         .toast {
             position: fixed;
             bottom: 20px;
@@ -1146,6 +1359,7 @@
             align-items: center;
             gap: var(--spacing-sm);
             max-width: 90%;
+            transition: var(--transition);
         }
         
         .toast.error {
@@ -1154,9 +1368,10 @@
         
         .toast.show {
             display: flex;
+            animation: slideUp 0.3s ease forwards;
         }
         
-        /* Offline Indicator */
+        /* Offline Indicator - PERBAIKAN: Tampilan lebih menarik */
         .offline-indicator {
             position: fixed;
             top: 0;
@@ -1170,9 +1385,11 @@
             display: none;
             font-weight: 600;
             font-size: var(--font-size-sm);
+            box-shadow: var(--shadow-md);
+            animation: fadeInDown 0.3s ease;
         }
         
-        /* Offline Page - NEW */
+        /* Offline Page - PERBAIKAN: Tampilan lebih menarik */
         .offline-page {
             position: fixed;
             top: 0;
@@ -1198,6 +1415,7 @@
             font-size: 4rem;
             color: var(--danger);
             margin-bottom: var(--spacing-lg);
+            animation: pulse 2s infinite;
         }
         
         .offline-title {
@@ -1221,13 +1439,16 @@
             font-weight: 600;
             cursor: pointer;
             font-size: var(--font-size-lg);
+            transition: var(--transition);
         }
         
         .offline-button:hover {
             background: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
         }
         
-        /* Error Modal - NEW */
+        /* Error Modal - PERBAIKAN: Tampilan lebih menarik */
         .error-modal {
             position: fixed;
             top: 0;
@@ -1241,6 +1462,7 @@
             z-index: 2500;
             opacity: 0;
             visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
         }
         
         .error-modal.active {
@@ -1257,10 +1479,11 @@
             box-shadow: var(--shadow-lg);
             transform: scale(0.9);
             text-align: center;
+            transition: transform 0.3s ease;
         }
         
         body.night-mode .error-modal-content {
-            background: var(--dark-surface);
+            background: var(--dark-surface); /* PERUBAHAN: Background hitam pekat untuk error-modal */
         }
         
         .error-modal.active .error-modal-content {
@@ -1271,6 +1494,7 @@
             font-size: 3rem;
             color: var(--danger);
             margin-bottom: var(--spacing-md);
+            animation: shake 0.5s ease;
         }
         
         .error-title {
@@ -1281,7 +1505,7 @@
         }
         
         .error-message {
-            font-size: var(--font-size-base);
+            font-size: var(--font-size-base-rem);
             margin-bottom: var(--spacing-lg);
             color: var(--dark);
         }
@@ -1315,13 +1539,14 @@
             border-radius: var(--radius-sm);
             font-weight: 600;
             cursor: pointer;
+            transition: var(--transition);
         }
         
         .error-button:hover {
             background: var(--primary-dark);
         }
         
-        /* Loading Spinner - NEW */
+        /* Loading Spinner - PERBAIKAN: Tampilan lebih menarik */
         .loading-spinner {
             display: inline-block;
             width: 20px;
@@ -1358,12 +1583,12 @@
             }
             
             .logo-subtitle {
-                font-size: var(--font-size-base);
+                font-size: var(--font-size-base-rem);
             }
             
             .enter-button {
                 padding: var(--spacing-sm) var(--spacing-lg);
-                font-size: var(--font-size-base);
+                font-size: var(--font-size-base-rem);
             }
             
             .action-buttons {
@@ -1374,7 +1599,7 @@
             .action-button {
                 width: 100%;
                 padding: var(--spacing-md);
-                font-size: var(--font-size-base);
+                font-size: var(--font-size-base-rem);
             }
             
             .nav-buttons {
@@ -1384,11 +1609,11 @@
             th, td {
                 padding: var(--spacing-xs);
                 min-width: 80px;
-                font-size: 1.05rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 1.05rem;
             }
             
             .kode-inject {
-                font-size: 1.05rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 1.05rem;
             }
         }
         
@@ -1406,7 +1631,7 @@
             }
             
             .mode-toggle .mode-label i {
-                font-size: var(--font-size-base);
+                font-size: var(--font-size-base-rem);
             }
             
             .toggle-switch {
@@ -1431,7 +1656,7 @@
             
             .tab {
                 padding: var(--spacing-sm) var(--spacing-md);
-                font-size: 1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 1rem;
             }
             
             h1 {
@@ -1492,6 +1717,7 @@
                 font-size: 0.7rem;
                 white-space: nowrap;
                 opacity: 0;
+                transition: opacity 0.3s ease;
             }
             
             .action-button:not(.save):not(.jpg-share):not(.import):not(.reset):hover::after {
@@ -1526,45 +1752,12 @@
             th, td {
                 min-width: 70px;
                 padding: 6px;
-                font-size: 1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 1rem;
             }
             
-            /* MODIFIKASI UTAMA: Optimasi kolom KODE INJECT untuk mobile */
             .kode-inject {
                 min-width: 100px;
                 font-size: 1rem;
-                padding: 6px 4px;
-                position: -webkit-sticky;
-                position: sticky;
-                left: 0;
-                z-index: 9;
-                background: white;
-                box-shadow: 2px 0 5px rgba(0,0,0,0.1);
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
-                will-change: transform;
-            }
-            
-            body.night-mode .kode-inject {
-                background: var(--dark-surface);
-            }
-            
-            th:first-child {
-                min-width: 100px;
-                font-size: 1rem;
-                padding: 6px 4px;
-                position: -webkit-sticky;
-                position: sticky;
-                left: 0;
-                z-index: 11;
-                background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-                transform: translateZ(0);
-                -webkit-transform: translateZ(0);
-                will-change: transform;
-            }
-            
-            body.night-mode th:first-child {
-                background: linear-gradient(135deg, var(--info), #0d7ea0);
             }
         }
         
@@ -1600,7 +1793,7 @@
                 width: 80px;
                 min-width: 80px;
                 max-width: 80px;
-                font-size: 0.9rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 0.9rem;
                 padding: 6px 4px;
             }
             
@@ -1609,7 +1802,7 @@
                 min-width: 80px;
                 max-width: 80px;
                 padding: 6px 4px;
-                font-size: 0.9rem; /* PERBAIKAN: Sesuaikan ukuran font */
+                font-size: 0.9rem;
             }
         }
         
@@ -1709,6 +1902,12 @@
             100% {
                 box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
             }
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
         }
         
         /* Custom CSS untuk menyembunyikan notifikasi yang menghalangi tabel */
@@ -1837,7 +2036,7 @@
             padding: 12px;
             text-align: center;
             font-weight: bold;
-            font-size: 18px; /* PERBAIKAN: Perbesar ukuran font untuk capture */
+            font-size: 18px;
             border: 1px solid var(--primary);
         }
         
@@ -1845,7 +2044,7 @@
             padding: 12px;
             text-align: center;
             border-bottom: 1px solid var(--border-color);
-            font-size: 18px; /* PERBAIKAN: Perbesar ukuran font untuk capture */
+            font-size: 18px;
             border: 1px solid #dee2e6;
             background-color: white;
         }
@@ -1873,23 +2072,31 @@
             color: var(--gray-light);
         }
         
+        /* Header sticky */
+        th:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 11;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        
+        body.night-mode th:first-child {
+            background: linear-gradient(135deg, var(--info), #0d7ea0);
+        }
+        
         /* Perubahan untuk membuat header KODE INJECT pada tabel kedua sama dengan tabel pertama */
         #secondTable th:first-child {
             padding: var(--spacing-sm);
             font-weight: 600;
             color: white;
-            position: -webkit-sticky;
             position: sticky;
             left: 0;
             z-index: 11;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
             min-width: 120px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            will-change: transform;
         }
         
         body.night-mode #secondTable th:first-child {
@@ -1901,22 +2108,57 @@
             padding: var(--spacing-sm);
             font-weight: 600;
             color: white;
-            position: -webkit-sticky;
             position: sticky;
             left: 0;
             z-index: 11;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            font-size: 1.1rem; /* PERBAIKAN: Sesuaikan ukuran font */
+            font-size: 1.1rem;
             min-width: 120px;
             background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            transform: translateZ(0);
-            -webkit-transform: translateZ(0);
-            will-change: transform;
         }
         
         body.night-mode #thirdTable th:first-child {
             background: linear-gradient(135deg, var(--info), #0d7ea0);
+        }
+        
+        /* PERBAIKAN: Browser-specific fixes */
+        /* Firefox-specific fixes */
+        @-moz-document url-prefix() {
+            body {
+                font-weight: 400; /* Mengatasi font yang terlalu tebal di Firefox */
+            }
+            
+            .table-container {
+                font-size: 0.95em; /* Menyesuaikan ukuran font di Firefox */
+            }
+            
+            input, button {
+                font-size: 1em; /* Konsistensi ukuran font di Firefox */
+            }
+            
+            .action-button {
+                min-height: 44px; /* Touch target size yang cukup di Firefox */
+            }
+        }
+        
+        /* Chrome/Safari-specific fixes */
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+            input, textarea, button {
+                -webkit-font-smoothing: antialiased;
+                -webkit-appearance: none;
+            }
+            
+            .action-button {
+                -webkit-transform: translateZ(0); /* Hardware acceleration */
+            }
+        }
+        
+        /* Edge-specific fixes */
+        @supports (-ms-ime-align: auto) {
+            .container {
+                display: block; /* Fix for flexbox in Edge */
+            }
         }
     </style>
 </head>
