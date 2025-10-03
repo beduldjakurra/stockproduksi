@@ -2,14 +2,15 @@
 
 const CACHE_STATIC = 'static-v2';
 const CACHE_DYNAMIC = 'dynamic-v2';
+const BASE_PATH = '/stockproduksi';
 
 // Aset statis yang benar-benar ada di repo
 const PRECACHE_ASSETS = [
-  '/',            // index.html
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  `${BASE_PATH}/`,            // index.html
+  `${BASE_PATH}/index.html`,
+  `${BASE_PATH}/manifest.json`,
+  `${BASE_PATH}/icons/icon-192x192.png`,
+  `${BASE_PATH}/icons/icon-512x512.png`
 ];
 
 self.addEventListener('install', (event) => {
@@ -40,10 +41,10 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const resClone = res.clone();
-          caches.open(CACHE_STATIC).then((cache) => cache.put('/', resClone));
+          caches.open(CACHE_STATIC).then((cache) => cache.put(`${BASE_PATH}/`, resClone));
           return res;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match('/index.html')))
+        .catch(() => caches.match(req).then((r) => r || caches.match(`${BASE_PATH}/index.html`)))
     );
     return;
   }
