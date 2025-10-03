@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  basePath: '/stockproduksi',
+  assetPrefix: '/stockproduksi',
   typescript: {
     ignoreBuildErrors: true,
   },
