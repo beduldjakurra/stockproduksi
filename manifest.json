@@ -2,12 +2,12 @@
   "name": "PT Fuji Seat Indonesia - Laporan Produksi",
   "short_name": "Fuji Seat Laporan",
   "description": "Progressive Web App untuk Laporan Data Stock Akhir Proses Div.INJECTION PT Fuji Seat Indonesia",
-  "start_url": "/",
+  "start_url": "/stockproduksi/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4361ee",
   "orientation": "portrait-primary",
-  "scope": "/",
+  "scope": "/stockproduksi/",
   "lang": "id",
   "icons": [
     {
