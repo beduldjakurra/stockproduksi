@@ -3,10 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <title>Redirect…</title>
-    <meta http-equiv="refresh" content="0; url=./index.html" />
     <script>
-      // Fallback JS jika meta refresh diblok
-      location.replace('./index.html');
+      // Preserve deep-links via ?p= and redirect to /stockproduksi/
+      (function() {
+        var pathname = window.location.pathname;
+        var base = '/stockproduksi/';
+        // If pathname starts with base, extract the sub-path
+        var subPath = pathname.indexOf(base) === 0 ? pathname.slice(base.length) : pathname;
+        // Remove leading slash if present
+        subPath = subPath.replace(/^\//, '');
+        // Redirect to base with ?p= parameter if there's a sub-path
+        var redirectUrl = base + (subPath ? '?p=' + encodeURIComponent('/' + subPath) : '');
+        location.replace(redirectUrl);
+      })();
     </script>
   </head>
   <body>
