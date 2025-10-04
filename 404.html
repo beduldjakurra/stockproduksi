@@ -2,14 +2,17 @@
 <html lang="id">
   <head>
     <meta charset="utf-8" />
-    <title>Redirect…</title>
-    <meta http-equiv="refresh" content="0; url=./index.html" />
+    <title>Mengarahkan…</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script>
-      // Fallback JS jika meta refresh diblok
-      location.replace('./index.html');
+      (function () {
+        var repo = '/stockproduksi';
+        var path = location.pathname.replace(repo, '');
+        var target = path + location.search + location.hash;
+        var url = repo + '/?p=' + encodeURIComponent(target);
+        location.replace(url);
+      })();
     </script>
   </head>
-  <body>
-    <p>Mengarahkan ke aplikasi…</p>
-  </body>
+  <body>Mengarahkan…</body>
 </html>
