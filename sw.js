@@ -1,15 +1,18 @@
 // Service Worker (PWA) – network-first untuk HTML + cache aman untuk aset statis
 
-const CACHE_STATIC = 'static-v2';
-const CACHE_DYNAMIC = 'dynamic-v2';
+const CACHE_STATIC = 'static-v3';
+const CACHE_DYNAMIC = 'dynamic-v3';
 
-// Aset statis yang benar-benar ada di repo
+// Gunakan scope SW sebagai base path (cocok untuk GitHub Pages project site)
+const BASE = new URL(self.registration.scope).pathname.replace(/\/??$/, '/');
+
+// Aset untuk precache, berbasis BASE
 const PRECACHE_ASSETS = [
-  '/',            // index.html
-  '/index.html',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png'
+  BASE,                     // root app
+  BASE + 'index.html',
+  BASE + 'manifest.json',
+  BASE + 'icons/icon-192x192.png',
+  BASE + 'icons/icon-512x512.png'
 ];
 
 self.addEventListener('install', (event) => {
@@ -21,11 +24,13 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys.map((k) => (k !== CACHE_STATIC && k !== CACHE_DYNAMIC ? caches.delete(k) : undefined))
+    caches.keys()
+      .then((keys) =>
+        Promise.all(keys.map((k) =>
+          (k !== CACHE_STATIC && k !== CACHE_DYNAMIC ? caches.delete(k) : undefined)
+        ))
       )
-    ).then(() => self.clients.claim())
+      .then(() => self.clients.claim())
   );
 });
 
@@ -40,10 +45,13 @@ self.addEventListener('fetch', (event) => {
       fetch(req)
         .then((res) => {
           const resClone = res.clone();
-          caches.open(CACHE_STATIC).then((cache) => cache.put('/', resClone));
+          caches.open(CACHE_STATIC).then((cache) => cache.put(BASE, resClone));
           return res;
         })
-        .catch(() => caches.match(req).then((r) => r || caches.match('/index.html')))
+        .catch(() =>
+          caches.match(req)
+            .then((r) => r || caches.match(BASE + 'index.html') || caches.match(BASE))
+        )
     );
     return;
   }
@@ -72,9 +80,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Untuk resource cross-origin: langsung network, fallback ke cache jika ada
-  event.respondWith(
-    fetch(req).catch(() => caches.match(req))
-  );
+  event.respondWith(fetch(req).catch(() => caches.match(req)));
 });
 
 // Opsional: dukung pesan untuk update cepat
