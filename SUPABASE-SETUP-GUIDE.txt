@@ -1,0 +1,63 @@
+# ==========================================
+# SUPABASE SETUP CREDENTIALS
+# Simpan informasi ini dengan aman!
+# ==========================================
+
+# Project Information (fill after creating Supabase project)
+PROJECT_NAME=fuji-seat-sto
+ORGANIZATION=[Your-GitHub-Username]
+DATABASE_PASSWORD=[Generated-Password]
+REGION=Southeast Asia (Singapore)
+
+# API Keys (akan didapat setelah project dibuat)
+SUPABASE_URL=https://[your-project-ref].supabase.co
+SUPABASE_ANON_KEY=[your-anon-key]
+SUPABASE_SERVICE_ROLE_KEY=[your-service-role-key]
+
+# Database Direct Connection (untuk tools eksternal)
+DATABASE_URL=postgresql://postgres:[password]@db.[project-ref].supabase.co:5432/postgres
+
+# ==========================================
+# LANGKAH SETUP:
+# ==========================================
+
+# 1. Create Supabase Project
+#    - Masuk ke https://supabase.com
+#    - Sign up dengan GitHub
+#    - Create new project dengan nama "fuji-seat-sto"
+#    - Generate strong password untuk database
+#    - Pilih region: Southeast Asia (Singapore)
+
+# 2. Get API Credentials
+#    - Masuk ke Project Settings > API
+#    - Copy Project URL -> SUPABASE_URL
+#    - Copy anon public key -> SUPABASE_ANON_KEY  
+#    - Copy service_role key -> SUPABASE_SERVICE_ROLE_KEY
+
+# 3. Setup Database Schema
+#    - Masuk ke SQL Editor di Supabase Dashboard
+#    - Copy paste isi file supabase-schema.sql
+#    - Run script untuk create tables dan policies
+
+# 4. Enable Authentication
+#    - Masuk ke Authentication > Settings
+#    - Enable Email authentication
+#    - Enable Google OAuth (optional)
+#    - Set site URL: http://localhost:3000 (for development)
+
+# 5. Test Integration
+#    - Create .env.local dengan credentials
+#    - Run npm run dev
+#    - Test signup/login flow
+#    - Test production data input
+
+# ==========================================
+# PRODUCTION DEPLOYMENT:
+# ==========================================
+
+# Untuk Vercel deployment:
+# - Add semua environment variables di Vercel dashboard
+# - Update site URL ke production URL
+# - Test production deployment
+
+# ==========================================
