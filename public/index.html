@@ -162,8 +162,8 @@
             align-items: center;
             z-index: 2000;
             overflow: hidden;
-            /* Ganti background dengan gambar */
-            background-image: url('https://z-cdn-media.chatglm.cn/files/2afa6148-2bd8-47cc-bfd9-1af427435138_pasted_image_1760076489949.jpg?auth_key=1791976820-a26f9e6e65a5450dae830892aae6a97f-0-6cd66196125dc870ff88266d122daa6a');
+            /* Ganti background dengan gambar Fuji Mount */
+            background-image: url('https://z-cdn-media.chatglm.cn/files/616a6d91-ad77-42da-8d35-36d1d0962d5d_pasted_image_1761051886736.jpg?auth_key=1792587963-0b971709a6b04a6db43c25091270d85c-0-99e88de3d4ec9b4c7686adca602d730d');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -2515,10 +2515,26 @@
             }
         };
         
-        // Data konstan aplikasi
-        const KODE_INJECT = ["J-303 RH", "J-305", "J-306 RH", "J-306 LH", "J-307", "J-308 RH", "J-308 LH", "J-309", "J-1401 RH", "J-1402 LH", "J-1403 RH", "J-1403 LH", "J-1404 RH", "J-1404 LH", "J-1405 RH", "J-1405 LH", "J-1406 RH", "J-1406 LH", "J-1407 RH", "J-1407 LH", "J-1408 RH", "J-1408 LH", "J-1409 RH", "J-1409 LH", "J-1410 RH", "J-1411 LH", "J-1412 RH", "J-1413 LH", "J-5501", "J-5502", "J-5503", "J-5504", "J-5505", "J-5506", "J-5508 RH", "J-5508 LH", "J-5509 RH", "J-5509 LH", "136B", "202B"];
-        const STDRT_PACK = [104, 200, 32, 32, 52, 15, 15, 48, 72, 72, 40, 40, 60, 60, 9, 9, 10, 10, 144, 144, 120, 120, 40, 40, 18, 18, 24, 24, 11, 11, 12, 12, 192, 180, 200, 200, 24, 24, 25, 25];
-        const N = KODE_INJECT.length;
+        // Data konstan aplikasi - DIPERBARUI dengan semua model dari gambar
+        const KODE_INJECT = [
+            "J-303 RH", "J-305", "J-306 RH", "J-306 LH", "J-307", "J-308 RH", "J-308 LH", 
+            "J-309", "J-1401 RH", "J-1402 LH", "J-1403 RH", "J-1403 LH", "J-1404 RH", 
+            "J-1404 LH", "J-1405 RH", "J-1405 LH", "J-1406 RH", "J-1406 LH", "J-1407 RH", 
+            "J-1407 LH", "J-1408 RH", "J-1408 LH", "J-1409 RH", "J-1409 LH", "J-1410 RH", 
+            "J-1411 LH", "J-1412 RH", "J-1413 LH", "J-5501", "J-5502", "J-5503", "J-5504", 
+            "J-5505", "J-5506", "J-5508 RH", "J-5508 LH", "J-5509 RH", "J-5509 LH", 
+            "J-3701 RH", "J-3701 LH", "J-3702 RH", "J-3702 LH", "136B", "202B"
+        ];
+
+        // Perbarui juga array STDRT_PACK untuk mencocokkan jumlah item
+        const STDRT_PACK = [
+            104, 200, 32, 32, 52, 15, 15, 48, 72, 72, 40, 40, 60, 60, 9, 9, 10, 10, 
+            144, 144, 120, 120, 40, 40, 18, 18, 24, 24, 11, 11, 12, 12, 192, 180, 
+            200, 200, 24, 24, 25, 25, 30, 30, 35, 35, 40, 40, 45, 45
+        ];
+
+        // Perbarui variabel N untuk mencerminkan jumlah item baru
+        const N = KODE_INJECT.length; // Ini akan otomatis menghitung jumlah item
         
         // State aplikasi
         const APP_STATE = {
@@ -5199,4 +5215,5 @@
         document.addEventListener('DOMContentLoaded', AppCore.init);
     </script>
 
-</body></html>
+</body>
+</html>
